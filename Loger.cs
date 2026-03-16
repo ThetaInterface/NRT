@@ -25,12 +25,12 @@ public static class Loger
                 if (!File.Exists(logFilePath))
                     File.Create(logFilePath).Close();
             }
+
+            return true;
         }
         catch { 
             return false; 
         }
-
-        return true;
     }
 
     private static void CreatePath(string path) 
@@ -50,9 +50,9 @@ public static class Loger
         }
     }
 
-    public static bool Message(ELogLevel level, string message)
+    public static bool Message(ELogLevel level, string message, string? prefix = null)
     {
-        string entryContent = $"[{DateTime.Now}] [{level.Display()}] {message}";
+        string entryContent = $"[{DateTime.Now}] [{level.Display()}] {(prefix != null ? $"[{prefix}]" : string.Empty)} {message}";
 
         return WriteEntry(entryContent);
     }
@@ -61,10 +61,14 @@ public static class Loger
     {
         if (File.Exists(logFilePath))
         {
-            using (StreamWriter sW = new(logFilePath, append: true, Encoding.UTF8))
-                sW.WriteLine(text);     
+            try {
+                using (StreamWriter sW = new(logFilePath, append: true, Encoding.UTF8))
+                    sW.WriteLine(text);     
 
-            return true;
+                return true;
+            } catch {
+                return false;
+            }
         }
         else 
             return false;
