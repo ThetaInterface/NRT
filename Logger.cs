@@ -4,7 +4,7 @@ using System.Text;
 
 namespace NRT.Util;
 
-public static class Loger
+public static class Logger
 {
     private const string LOG_FILE_NAME = "log.txt";
 
@@ -17,7 +17,7 @@ public static class Loger
 
             if (directoryPath != null)
             {
-                IO.CreatePath(directoryPath);
+                Directory.CreateDirectory(directoryPath);
 
                 logFilePath = Path.Combine(directoryPath, LOG_FILE_NAME);
 
@@ -43,7 +43,7 @@ public static class Loger
 
     private static bool WriteEntry(string text)
     {
-        if (File.Exists(logFilePath))
+        if (logFilePath != null && File.Exists(logFilePath))
         {
             try {
                 using (StreamWriter sW = new(logFilePath, append: true, Encoding.UTF8))

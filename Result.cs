@@ -1,7 +1,7 @@
 namespace NRT.Exception;
 
-public struct Result<T>(T? value, bool success)
+public record Result<T>(T? Value, bool Success)
 {
-    public T? Value = value;
-    public bool Success = success;
+    public T? Value = Value;
+    public bool Success = Success;
 }

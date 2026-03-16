@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -20,13 +18,13 @@ public static class IO
 
             return new (await JsonSerializer.DeserializeAsync<T>(fs, options: DEFAULT_SERIALIZE_OPTIONS), true);
         } catch (System.Exception ex) {
-            Loger.Message(ELogLevel.Error, ex.Message, prefix: "Deserialize");
+            Logger.Message(ELogLevel.Error, ex.Message, prefix: "Deserialize");
 
             return new (default, false);
         }
     }
 
-    public static async Task<Result<T>> TrySerializeAsync<T>(T obj, string path, bool openOrCreate = false)
+    public static async Task<Result<T>> TrySerializeAsync<T>(T obj, string path)
     {
         try {
             using FileStream fs = new(path, FileMode.OpenOrCreate);
@@ -34,26 +32,23 @@ public static class IO
             await JsonSerializer.SerializeAsync(fs, obj, options: DEFAULT_SERIALIZE_OPTIONS);
             return new (default, true);
         } catch (System.Exception ex) {
-            Loger.Message(ELogLevel.Error, ex.Message, prefix: "Serialize");
+            Logger.Message(ELogLevel.Error, ex.Message, prefix: "Serialize");
 
             return new (default, false);
         }
     }
 
-    public static void CreatePath(string path) 
+    public static async Task<bool> WriteConfig(Config config) 
     {
-        if (!Directory.Exists(path))
-        {
-            string childrenName = path.Split('\\', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last();
-            string parentPath = path.Replace(childrenName, string.Empty);
+        var result = await IO.TrySerializeAsync(config, Config.CONFIG_PATH);
 
-            while (parentPath.EndsWith('\\'))
-                parentPath = parentPath.TrimEnd('\\');
+        return result.Success;
+    }
 
-            if (!Directory.Exists(parentPath))
-                CreatePath(parentPath);
-            
-            Directory.CreateDirectory(path);   
-        }
+    public static async Task<Result<Config>> ReadConfig() 
+    {
+        var result = await IO.TryDeserializeAsync<Config>(Config.CONFIG_PATH);
+
+        return result;
     }
 }

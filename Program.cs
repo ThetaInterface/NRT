@@ -19,11 +19,11 @@ public static class Program
 
     public static async Task Main()
     {
-        if (!Loger.SetWorkingSpace(DATA_PATH) || !Loger.Message(ELogLevel.Debug, "Loger initialized successfuly!"))
+        if (!Logger.SetWorkingSpace(DATA_PATH) || !Logger.Message(ELogLevel.Debug, "Loger initialized successfully!"))
         {
             Console.ForegroundColor = ConsoleColor.Red;
 
-            Console.WriteLine("Loger was not initilized!\nPress any key to close application...");
+            Console.WriteLine("Logger was not initialized!\nPress any key to close application...");
             Console.ReadKey();
 
             Console.ForegroundColor = ConsoleColor.White;
@@ -31,14 +31,14 @@ public static class Program
             return;
         }
 
-        AppDomain.CurrentDomain.UnhandledException += OnExeptionThrown;
+        AppDomain.CurrentDomain.UnhandledException += OnExceptionThrown;
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
         if (!CheckFiles())
         {
             Console.ForegroundColor = ConsoleColor.Red;
             
-            Console.WriteLine($"File check failed! Check \'{Loger.GetWorkingSpace() ?? "Log file was not initialize!"}\'\nPress any key to close application...");
+            Console.WriteLine($"File check failed! Check \'{Logger.GetWorkingSpace() ?? "Log file was not initialize!"}\'\nPress any key to close application...");
             Console.ReadKey();
 
             Console.ForegroundColor = ConsoleColor.White;
@@ -52,9 +52,9 @@ public static class Program
     private static bool CheckFiles()
     {
         try {
-            IO.CreatePath(ENTRIES_PATH);
+            Directory.CreateDirectory(ENTRIES_PATH);
         } catch (System.Exception ex) {
-            Loger.Message(ELogLevel.Error, ex.Message, prefix: "Check");
+            Logger.Message(ELogLevel.Error, ex.Message, prefix: "Check");
 
             return false;
         } 
@@ -62,8 +62,8 @@ public static class Program
         return true;
     }
 
-    private static void OnExeptionThrown(object sender, UnhandledExceptionEventArgs e) =>
-        Loger.Message(ELogLevel.Error, e.ExceptionObject.ToString() ?? "UnhandledException");
+    private static void OnExceptionThrown(object sender, UnhandledExceptionEventArgs e) =>
+        Logger.Message(ELogLevel.Error, e.ExceptionObject.ToString() ?? "UnhandledException");
 
     private static void OnProcessExit(object? sender, EventArgs e) =>
         Console.Clear();

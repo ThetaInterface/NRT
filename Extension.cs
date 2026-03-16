@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using NRT.Exception;
-
 namespace NRT.Util;
 
 public static class Extension
@@ -19,21 +16,7 @@ public static class Extension
                 return "ERROR";
             
             default:
-                return "UNKOWN";
+                return "UNKNOWN";
         }
-    }
-
-    public static async Task<bool> Write(this Config config) 
-    {
-        var result = await IO.TrySerializeAsync(config, Config.CONFIG_PATH);
-
-        return result.Success;
-    }
-
-    public static async Task<Result<Config>> Read(this Config config) 
-    {
-        var result = await IO.TryDeserializeAsync<Config>(Config.CONFIG_PATH);
-
-        return result;
     }
 }
