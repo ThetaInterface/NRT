@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace NRT.Util;
@@ -18,7 +17,7 @@ public static class Loger
 
             if (directoryPath != null)
             {
-                CreatePath(directoryPath);
+                IO.CreatePath(directoryPath);
 
                 logFilePath = Path.Combine(directoryPath, LOG_FILE_NAME);
 
@@ -33,22 +32,7 @@ public static class Loger
         }
     }
 
-    private static void CreatePath(string path) 
-    {
-        if (!Directory.Exists(path))
-        {
-            string childrenName = path.Split('\\', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last();
-            string parentPath = path.Replace(childrenName, string.Empty);
-
-            while (parentPath.EndsWith('\\'))
-                parentPath = parentPath.TrimEnd('\\');
-
-            if (!Directory.Exists(parentPath))
-                CreatePath(parentPath);
-            
-            Directory.CreateDirectory(path);   
-        }
-    }
+    public static string? GetWorkingSpace() => logFilePath;
 
     public static bool Message(ELogLevel level, string message, string? prefix = null)
     {

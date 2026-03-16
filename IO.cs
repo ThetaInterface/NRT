@@ -1,91 +1,59 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 
+using NRT.Exception;
 using NRT.Util;
 
-namespace NRT.IO;
+namespace NRT;
 
 public static class IO
 {
     private static readonly JsonSerializerOptions DEFAULT_SERIALIZE_OPTIONS = new() { WriteIndented = true };
 
-    public static bool TryReadFile(string path, out string result)
+    public static async Task<Result<T>> TryDeserializeAsync<T>(string path)
     {
-        if (File.Exists(path))
-        {
-            try {
-                using (StreamReader sR = new(path))
-                    result = sR.ReadToEnd();
-                
-                return true;
-            } catch (Exception e) {
-                Loger.Message(ELogLevel.Error, e.Message, prefix: "Read");
+        try {
+            using FileStream fs = new(path, FileMode.Open);
 
-                result = string.Empty;
-                return false;
-            }
-        }
-        else
-        {
-            Loger.Message(ELogLevel.Warning, $"File does not exists! {path}", prefix: "Read");
+            return new (await JsonSerializer.DeserializeAsync<T>(fs, options: DEFAULT_SERIALIZE_OPTIONS), true);
+        } catch (System.Exception ex) {
+            Loger.Message(ELogLevel.Error, ex.Message, prefix: "Deserialize");
 
-            result = string.Empty;
-            return false;
+            return new (default, false);
         }
     }
 
-    public static bool TryWriteFile(string path, string text, bool append = false)
+    public static async Task<Result<T>> TrySerializeAsync<T>(T obj, string path, bool openOrCreate = false)
     {
-        if (File.Exists(path))
-        {
-            try {
-                using (StreamWriter sW = new(path, append))
-                    sW.Write(text);
+        try {
+            using FileStream fs = new(path, FileMode.OpenOrCreate);
+            
+            await JsonSerializer.SerializeAsync(fs, obj, options: DEFAULT_SERIALIZE_OPTIONS);
+            return new (default, true);
+        } catch (System.Exception ex) {
+            Loger.Message(ELogLevel.Error, ex.Message, prefix: "Serialize");
 
-                return true;
-            } catch (Exception e) {
-                Loger.Message(ELogLevel.Error, e.Message, prefix: "Write");
-
-                return false;
-            }
+            return new (default, false);
         }
-        else
-        {
-            Loger.Message(ELogLevel.Warning, $"File does not exists! {path}", prefix: "Write");
-
-            return false;
-        }   
     }
 
-    public static bool TryDeserialize<T>(ref T obj, string path)
+    public static void CreatePath(string path) 
     {
-        if (TryReadFile(path, out string json))
+        if (!Directory.Exists(path))
         {
-            try {
-                T? temp = JsonSerializer.Deserialize<T>(json);
+            string childrenName = path.Split('\\', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last();
+            string parentPath = path.Replace(childrenName, string.Empty);
 
-                if (temp != null)
-                    obj = temp;
-                else
-                    return false;
+            while (parentPath.EndsWith('\\'))
+                parentPath = parentPath.TrimEnd('\\');
 
-                return true;
-            } catch {
-                return false;
-            }
+            if (!Directory.Exists(parentPath))
+                CreatePath(parentPath);
+            
+            Directory.CreateDirectory(path);   
         }
-        else
-            return false;
-    }
-
-    public static bool TrySerialize<T>(T obj, string path)
-    {
-        string json = JsonSerializer.Serialize(obj, DEFAULT_SERIALIZE_OPTIONS);
-
-        if (File.Exists(path))
-            return TryWriteFile(path, json);
-        else
-            return false;    
     }
 }

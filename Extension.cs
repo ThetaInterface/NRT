@@ -1,4 +1,5 @@
-using static NRT.IO.IO;
+using System.Threading.Tasks;
+using NRT.Exception;
 
 namespace NRT.Util;
 
@@ -22,9 +23,17 @@ public static class Extension
         }
     }
 
-    public static bool Write(this Config config) =>
-        TrySerialize(config, Config.CONFIG_FILE_NAME);
+    public static async Task<bool> Write(this Config config) 
+    {
+        var result = await IO.TrySerializeAsync(config, Config.CONFIG_PATH);
 
-    public static bool Read(this ref Config config) =>
-        TryDeserialize(ref config, Config.CONFIG_FILE_NAME);
+        return result.Success;
+    }
+
+    public static async Task<Result<Config>> Read(this Config config) 
+    {
+        var result = await IO.TryDeserializeAsync<Config>(Config.CONFIG_PATH);
+
+        return result;
+    }
 }

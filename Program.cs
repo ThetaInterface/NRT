@@ -1,6 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
+
+using NRT.Resource;
 using NRT.Util;
+using NRT.Exception;
 
 namespace NRT;
 
@@ -13,9 +17,7 @@ public static class Program
     private static readonly string DATA_PATH = Path.Combine(APP_PATH, DATA_FOLDER_NAME);
     private static readonly string ENTRIES_PATH = Path.Combine(DATA_PATH, ENTRIES_FOLDER_NAME);
 
-    private static readonly string CONFIG_FILE_PATH = Path.Combine(DATA_PATH, Config.CONFIG_FILE_NAME);
-
-    public static void Main()
+    public static async Task Main()
     {
         if (!Loger.SetWorkingSpace(DATA_PATH) || !Loger.Message(ELogLevel.Debug, "Loger initialized successfuly!"))
         {
@@ -32,37 +34,32 @@ public static class Program
         AppDomain.CurrentDomain.UnhandledException += OnExeptionThrown;
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
-        if (!CheckConfig())
+        if (!CheckFiles())
         {
             Console.ForegroundColor = ConsoleColor.Red;
             
-            Console.WriteLine("Configuration file was unable to create!\nPress any key to close application...");
+            Console.WriteLine($"File check failed! Check \'{Loger.GetWorkingSpace() ?? "Log file was not initialize!"}\'\nPress any key to close application...");
             Console.ReadKey();
 
             Console.ForegroundColor = ConsoleColor.White;
 
             return;
         }
-    
+
         
     }
 
-    private static bool CheckConfig()
+    private static bool CheckFiles()
     {
-        if (!File.Exists(CONFIG_FILE_PATH))
-        {
-            try {
-                File.Create(CONFIG_FILE_PATH).Close();
+        try {
+            IO.CreatePath(ENTRIES_PATH);
+        } catch (System.Exception ex) {
+            Loger.Message(ELogLevel.Error, ex.Message, prefix: "Check");
 
-                return true;
-            } catch (Exception e) {
-                Loger.Message(ELogLevel.Error, e.Message, prefix: "Config");
-                
-                return false;
-            }
-        }
-        else
-            return true;
+            return false;
+        } 
+
+        return true;
     }
 
     private static void OnExeptionThrown(object sender, UnhandledExceptionEventArgs e) =>
