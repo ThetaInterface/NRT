@@ -38,16 +38,28 @@ public static class Input
             }
 
             if (int.TryParse(userInput, out int result))
+            {
                 if (result >= floor && result <= ceiling)
                 {
                     isKeyPhrase = false;
 
                     return result;
                 }
+                else
+                {
+                    Console.WriteLine($"Enter a number between {floor} and {ceiling}!");
+                    Console.ReadKey();
+                }
+            }
+            else
+            {
+                Console.WriteLine("Not a number!");
+                Console.ReadKey();
+            }
         }
     }
 
-    public static string UserInput(string text, string[] vocabulary)
+    public static string UserInput(string text, string[] vocabulary, char[]? notAllowedSymbols = null, bool inverted = false)
     {
         while (true)
         {
@@ -56,8 +68,23 @@ public static class Input
 
             string input = Console.ReadLine() ?? "";
 
-            if (vocabulary.Contains(input))
+            if (notAllowedSymbols != null && input.IndexOfAny(notAllowedSymbols) != -1)
+            {
+                Console.WriteLine("Text contains not allowed symbol!");
+                Console.ReadKey();
+
+                continue;
+            }
+
+            if (!inverted && vocabulary.Contains(input))
                 return input;
+            else if (inverted && !vocabulary.Contains(input))
+                return input;
+            else
+            {
+                Console.WriteLine("This word is not allowed!");
+                Console.ReadKey();
+            }
         }
     }
 }

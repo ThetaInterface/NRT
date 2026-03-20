@@ -22,6 +22,17 @@ public class Deck
     public DateTime? LastReviewDate { get; set; } = null;
     public int ReviewCount { get; set; } = 0;
 
+    public Deck() { }
+
+    public Deck(string title, bool useSuperMemo)
+    {
+        if (title.IndexOfAny(Path.GetInvalidFileNameChars()) != -1)
+            throw new InvalidDataException("Title contains not allowed symbols!");
+        
+        DeckTitle = title;
+        UseSuperMemo = useSuperMemo;
+    }
+
     public static string GetDeckNameFromPath(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -41,7 +52,7 @@ public class Deck
                 paths.Add(path);
 
         if (paths.Count <= 0)
-            return Result<string[]>.Fail(new InvalidDataException($"There is no decks in \'{directoryPath}\'"));
+            return Result<string[]>.Fail(new FileNotFoundException($"There is no decks in \'{directoryPath}\'"));
         
         return Result<string[]>.Ok(paths.ToArray());
     } 
@@ -75,7 +86,7 @@ public class Deck
 
         if (title.IndexOfAny(InvalidCharsInPathName) != -1) 
         {
-            var e = new InvalidDataException($"Invalid file name! \'{title}\'.");
+            var e = new InvalidDataException($"Invalid file name! '{title}'.");
             return Result<Deck>.Fail(e);
         }
 

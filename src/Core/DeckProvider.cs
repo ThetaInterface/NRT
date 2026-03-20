@@ -22,7 +22,7 @@ public static class DeckProvider
 
         if (!result.Success)
         {
-            Logger.Warning("Decks not found!", "DeckProvider");
+            Logger.Warning("Decks not found OR unable to read!", "DeckProvider");
 
             return Result<bool>.Fail(result.Exception);
         }
