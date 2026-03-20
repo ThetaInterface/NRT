@@ -3,8 +3,6 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using NRT.Core;
-
 namespace NRT;
 
 public static class IO
@@ -19,8 +17,6 @@ public static class IO
 
             return Result<T>.Ok(result);
         } catch (Exception e) {
-            Logger.Error(e, prefix: "Deserialize");
-
             return Result<T>.Fail(e);
         }
     }
@@ -33,8 +29,6 @@ public static class IO
 
             return Result<bool>.Ok(true);
         } catch (Exception e) {
-            Logger.Error(e, prefix: "Serialize");
-
             return Result<bool>.Fail(e);
         }
     }

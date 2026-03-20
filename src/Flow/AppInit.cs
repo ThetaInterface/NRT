@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+
 using NRT.Core;
 
 namespace NRT.Flow;
@@ -41,10 +42,12 @@ public static partial class App
 
     private static void OnProcessExit(object? sender, EventArgs e) => OnApplicationClosed();
 
-    private static void OnApplicationClosed()
+    private static async void OnApplicationClosed()
     {
+        await Config.Write(ConfigProvider.AppConfig);
+
         Logger.Dispose();
 
-        Console.Clear();
+        ClearScreen();
     }
 }

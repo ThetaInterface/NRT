@@ -1,12 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using NRT.Core;
+
+using NRT.Interface;
 
 namespace NRT.Flow;
 
 public static partial class App
 {
+    private const bool DEBUG = false;
+
     public const string DATA_FOLDER_NAME = "data";
     public const string ENTRIES_FOLDER_NAME = "entries";
 
@@ -17,5 +20,7 @@ public static partial class App
     public static async Task Main()
     {
         await Initialization();
+
+        await MainMenu.Show();
     }
 }

@@ -12,6 +12,8 @@ public class Config
     public static readonly string CONFIG_PATH = Path.Combine(App.DataPath, CONFIG_FILE_NAME);
 
     public bool LogDebugInfo { get; init; } = false;
+    public char SeparatorSymbol { get; init; } = ',';
+    public bool LiteMode { get; init; } = false;
 
     public static async Task<Config> Read()
     {

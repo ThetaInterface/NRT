@@ -11,6 +11,12 @@ public readonly record struct Result<T>(T? Value, bool Success, Exception? Excep
 
     public static Result<T> Ok(T? value) => new(value, true, null);
     public static Result<T> Fail(Exception exception) => new(default, false, exception);
+    
+    public void ThrowIfNotValue()
+    {
+        if (!Success)
+            throw Exception ?? throw new InvalidOperationException("Result without error info.");
+    }
 
     public T ValueOrThrow() => Success ? 
         Value : throw Exception ?? throw new InvalidOperationException("Result without error info.");

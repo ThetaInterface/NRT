@@ -1,12 +1,130 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+
+using NRT.Flow;
+using System.Linq;
 
 namespace NRT.Resource;
 
-public class Deck(string title)
+public class Deck
 {
-    public string DeckTitle { get; set; } = title;
-    public List<DeckEntry> Entries { get; set;}= [];
+    internal const string FILE_EXTENSION = "json";
 
-    public void AddEntry(string title, string question, string[] answers, string correctAnswer) =>
-        Entries.Add(new(title, question, answers, correctAnswer));
+    internal static readonly char[] InvalidCharsInPathName = Path.GetInvalidFileNameChars(); 
+    internal string FilePath => Path.Combine(App.EntriesPath, $"{DeckTitle}.{FILE_EXTENSION}");
+
+    public string DeckTitle { get; init; } = string.Empty;
+    public List<DeckEntry> Entries { get; init; } = [];
+    public bool UseSuperMemo { get; init; } = false;
+
+    public DateTime? LastReviewDate { get; set; } = null;
+    public int ReviewCount { get; set; } = 0;
+
+    public static string GetDeckNameFromPath(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        return Path.GetFileNameWithoutExtension(path);
+    }
+
+    public static Result<string[]> GetPaths(string directoryPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
+
+        List<string> paths = [];
+        string[] allPaths = Directory.GetFiles(directoryPath);
+        
+        foreach (string path in allPaths)
+            if (path.EndsWith($".{FILE_EXTENSION}"))
+                paths.Add(path);
+
+        if (paths.Count <= 0)
+            return Result<string[]>.Fail(new InvalidDataException($"There is no decks in \'{directoryPath}\'"));
+        
+        return Result<string[]>.Ok(paths.ToArray());
+    } 
+
+    public void OnReview(int reviewCount = 1) // when deck entry was answered
+    {
+        if (LastReviewDate == null)
+            LastReviewDate = DateTime.Now.Date;
+        else if (LastReviewDate.Value != DateTime.Now.Date)
+        {
+            LastReviewDate = DateTime.Now.Date;
+            ReviewCount = 0;
+        }
+
+        ReviewCount += reviewCount;
+    }
+
+    public IEnumerable<DeckEntry> GetEntriesByDate(DateTime date) =>
+        Entries.Where(e => e.ShowDate == null || e.ShowDate.Value.Date <= date.Date);
+
+    public async Task AddEntry(string title, string question, string[] answers, string[] correctAnswers) 
+    {
+        Entries.Add(new(title, question, answers, correctAnswers));
+
+        await WriteDeckAsync(this);
+    }
+
+    public async Task<Result<Deck>> SetDeckTitleAsync(string title)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
+
+        if (title.IndexOfAny(InvalidCharsInPathName) != -1) 
+        {
+            var e = new InvalidDataException($"Invalid file name! \'{title}\'.");
+            return Result<Deck>.Fail(e);
+        }
+
+        return await UpdateDeckAsync(old => new Deck()
+        {
+            DeckTitle = title,
+            Entries = old.Entries
+        });
+    }
+
+    public static async Task<Result<Deck>> ReadDeckAsync(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        return await IO.TryDeserializeAsync<Deck>(path);
+    }
+
+    public static async Task<Result<bool>> WriteDeckAsync(Deck deck)
+    {
+        ArgumentNullException.ThrowIfNull(deck);
+
+        string path = deck.FilePath;
+
+        return await IO.TrySerializeAsync(deck, path);
+    }
+
+    public async Task<Result<Deck>> UpdateDeckAsync(Func<Deck, Deck> modify)
+    {
+        Deck modified = modify(this);
+        Result<bool> result = await WriteDeckAsync(modified);
+
+        if (result.Success)
+        {
+            if (!DeckTitle.Equals(modified.DeckTitle))
+                File.Delete(FilePath);
+
+            return Result<Deck>.Ok(modified);
+        }        
+        else
+            return Result<Deck>.Fail(result.Exception);
+    }
+    
+    public async Task Setup()
+    {
+        foreach (var entry in Entries)
+            entry.ConnectToDeck(this);
+
+        OnReview(0); // Update review count
+
+        await WriteDeckAsync(this);
+    }
 }
