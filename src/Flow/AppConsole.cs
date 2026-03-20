@@ -11,6 +11,9 @@ public static partial class App
         if (!DEBUG)
             Console.Clear();
     }
+
+    public static string ReadLine() => Console.ReadLine() ?? throw new InvalidOperationException("Console is null!");
+    
 }
 
 #pragma warning restore CS0162

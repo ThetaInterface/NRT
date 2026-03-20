@@ -41,7 +41,7 @@ public static class DeckBrowser
                 overallReviewedCount += deck.ReviewCount;
         }
 
-        string text = "\t1) Browser mode\n\t2) Review mode\nChoose mode ('q' to return): ";
+        string text = "\t1) Browser mode\n\t2) Review mode\n\nChoose mode ('q' to return): ";
         int userInput = Input.UserInput(text, ceiling: 2, out bool quit, keyPhrase: "q");
 
         if (quit) return;
@@ -66,7 +66,7 @@ public static class DeckBrowser
         for (int i = 0; i < deckNames.Length; i++)
             text += $"\t{i + 1}) " + deckNames[i] + "\n";
 
-        text += "Choose deck to browse (enter 'q' to return): ";
+        text += "\nChoose deck to browse (enter 'q' to return): ";
 
         int deckIndex = Input.UserInput(text, DeckProvider.DeckPaths.Length, out bool quit, keyPhrase: "q");
 
@@ -166,7 +166,7 @@ public static class DeckBrowser
         App.ClearScreen();
         Console.Write(problemText);
 
-        string userInput = Console.ReadLine() ?? "";
+        string userInput = App.ReadLine();
 
         if (userInput.Equals("q"))
         {
@@ -202,9 +202,9 @@ public static class DeckBrowser
             $"{entry.Question}\n\n";
 
         for (int i = 0; i < answers.Length; i++)
-            text += $"{i + 1}) {answers[i]}\n";
+            text += $"\t{i + 1}) {answers[i]}\n";
         
-        text += "Choose right answers ('q' to return | 's' to skip): ";
+        text += "\nChoose right answers ('q' to return | 's' to skip): ";
 
 
         wantToEnd = false;
@@ -214,7 +214,7 @@ public static class DeckBrowser
             App.ClearScreen();
             Console.Write(text);
 
-            string userInput = Console.ReadLine() ?? "";
+            string userInput = App.ReadLine();
 
             if (userInput.Equals("q"))
             {
@@ -227,7 +227,7 @@ public static class DeckBrowser
 
             Console.Write("Are you sure ('enter' to agree)?");
 
-            if ((Console.ReadLine() ?? "").Length <= 0)
+            if (App.ReadLine().Length <= 0)
             {
                 char separator = ConfigProvider.AppConfig.SeparatorSymbol;
                 string[] answerParts = userInput.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

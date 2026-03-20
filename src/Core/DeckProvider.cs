@@ -32,13 +32,17 @@ public static class DeckProvider
         return Result<bool>.Ok(true);
     }   
 
-    public static IEnumerable<string> GetDeckNames()
+    public static IEnumerable<string> GetDeckNames(bool toLower = false)
     {
         if (DeckPaths.Length <= 0)
             throw new InvalidOperationException("DeckPath list does not contain anything! Run 'DeckProvider.LoadDeckPaths()' first!");
 
-        foreach (var path in DeckPaths)
-            yield return Deck.GetDeckNameFromPath(path);
+        foreach (var path in DeckPaths) 
+        {
+            string name = Deck.GetDeckNameFromPath(path);
+            
+            yield return toLower ? name.ToLower() : name;
+        }
     }
 
     public static IEnumerable<int> GetEntryCounts()

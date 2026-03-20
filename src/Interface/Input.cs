@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using NRT.Flow;
@@ -28,7 +29,7 @@ public static class Input
             App.ClearScreen();
             Console.Write(text);
 
-            string userInput = Console.ReadLine() ?? "";
+            string userInput = App.ReadLine();
 
             if (keyPhrase != null && keyPhrase.Equals(userInput))
             {
@@ -63,10 +64,10 @@ public static class Input
     {
         while (true)
         {
-            Console.Clear();
+            App.ClearScreen();
             Console.Write(text);
 
-            string input = Console.ReadLine() ?? "";
+            string input = App.ReadLine();
 
             if (notAllowedSymbols != null && input.IndexOfAny(notAllowedSymbols) != -1)
             {
@@ -76,15 +77,31 @@ public static class Input
                 continue;
             }
 
-            if (!inverted && vocabulary.Contains(input))
+            if (!inverted && vocabulary.Contains(input.ToLower()))
                 return input;
-            else if (inverted && !vocabulary.Contains(input))
+            else if (inverted && !vocabulary.Contains(input.ToLower()))
                 return input;
             else
             {
-                Console.WriteLine("This word is not allowed!");
+                Console.WriteLine("This text is not allowed!");
                 Console.ReadKey();
             }
+        }
+    }
+
+    public static IEnumerable<string> UserInput(string text, string phraseToQuit = "")
+    {
+        while (true)
+        {
+            App.ClearScreen();
+            Console.Write(text);
+
+            string input = App.ReadLine();
+
+            if (!input.Equals(phraseToQuit))
+                yield return input;
+            else
+                break;
         }
     }
 }

@@ -73,9 +73,10 @@ public class Deck
     public IEnumerable<DeckEntry> GetEntriesByDate(DateTime date) =>
         Entries.Where(e => e.ShowDate == null || e.ShowDate.Value.Date <= date.Date);
 
-    public async Task AddEntry(string title, string question, string[] answers, string[] correctAnswers) 
+    public async Task AddEntry(DeckEntry entry) 
     {
-        Entries.Add(new(title, question, answers, correctAnswers));
+        Entries.Add(entry);
+        entry.ConnectToDeck(this);
 
         await WriteDeckAsync(this);
     }
