@@ -70,6 +70,8 @@ public class Deck
         ReviewCount += reviewCount;
     }
 
+    public void Delete() => File.Delete(FilePath);
+
     public IEnumerable<DeckEntry> GetEntriesByDate(DateTime date) =>
         Entries.Where(e => e.ShowDate == null || e.ShowDate.Value.Date <= date.Date);
 

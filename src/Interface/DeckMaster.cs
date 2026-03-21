@@ -1,12 +1,11 @@
+using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
+using NRT.Core;
 using NRT.Flow;
 using NRT.Resource;
-using NRT.Core;
-using System.IO;
-using System;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace NRT.Interface;
 
@@ -18,11 +17,11 @@ public static class DeckMaster
 
     public static async Task Show()
     {
-        string textToShow = "\t1) Create new deck\n\t2) Edit existing deck\n\tq) Quit\n\nChoose action: ";
+        string textToShow = "\t1) Create new deck\n\t2) Edit existing deck\n\t3) Delete existing deck\n\tq) Quit\n\nChoose action: ";
 
         App.ClearScreen();
 
-        int userInput = Input.UserInput(textToShow, ceiling: 2, out bool quit, keyPhrase: "q");
+        int userInput = Input.UserInput(textToShow, ceiling: 3, out bool quit, keyPhrase: "q");
 
         if (quit) return;
 
@@ -30,6 +29,7 @@ public static class DeckMaster
         {
             case 1: await CreateDeck(); break;
             case 2: await EditDeck(); break;
+            case 3: await DeleteDeck(); break;
 
             default:
                 throw new InvalidOperationException("Invalid input!");
@@ -77,7 +77,7 @@ public static class DeckMaster
         Result<bool> result = DeckProvider.LoadDeckPaths();
         if (!result.Success && result.Exception is not FileNotFoundException)
             throw result.Exception;
-        else if (!result.Success && result.Exception is  FileNotFoundException)
+        else if (!result.Success && result.Exception is FileNotFoundException)
         {
             Console.WriteLine("There's no created decks yet!");
             Console.ReadKey();
@@ -99,7 +99,7 @@ public static class DeckMaster
 
         App.ClearScreen();
 
-        Deck deckEdit = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], liteMode: true);
+        Deck deckEdit = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], readFromFile: true);
 
         textToShow = "\t1) Add entry\n\t2) Edit entries\n\t3) Delete entries\n\tq) Quit\n\nChoose action: ";
         int userInput = Input.UserInput(textToShow, ceiling: 3, out quit, keyPhrase: "q");
@@ -115,6 +115,35 @@ public static class DeckMaster
             default:
                 throw new InvalidOperationException("Invalid input!");
         }
+    }
+
+    private static async Task DeleteDeck()
+    {
+        App.ClearScreen();
+
+        Result<bool> result = DeckProvider.LoadDeckPaths();
+        if (!result.Success && result.Exception is not FileNotFoundException)
+            throw result.Exception;
+        else if (!result.Success && result.Exception is FileNotFoundException)
+        {
+            Console.WriteLine("There's no created decks yet!");
+            Console.ReadKey();
+
+            return;
+        }
+
+        string textToShow = DeckBrowser.GetNumberedDeckList();
+        textToShow += "\n\nChoose deck to delete ('q' to quit): ";
+
+        int deckIndex = Input.UserInput(textToShow, ceiling: DeckProvider.DeckPaths.Length, out bool quit, keyPhrase: "q");
+
+        if (quit) return;
+
+        Console.Write("Are you sure? (press 'enter' to agree)");
+        string userInput = App.ReadLine();
+
+        if (userInput.Equals(""))
+            await DeckProvider.DeleteDeck(deckIndex - 1, false);
     }
 
     private static async Task AddEntriesToDeck(Deck deck)

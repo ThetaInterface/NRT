@@ -8,13 +8,17 @@ public static class Extension
 
     public static string Display(this ELogLevel level) => level.ToString().ToUpper();
 
-    public static void Shuffle<T>(this T[] array)
+    public static T[] Shuffle<T>(this T[] array)
     {
-        for (int i = array.Length - 1; i > 0; i--)
+        T[] newArray = array.Clone() as T[] ?? throw new InvalidOperationException("Can not create new array to shuffle it!");
+
+        for (int i = newArray.Length - 1; i > 0; i--)
         {
             int j = random.Next(0, i + 1);
 
-            (array[j], array[i]) = (array[i], array[j]);
+            (newArray[j], newArray[i]) = (newArray[i], newArray[j]);
         }
+
+        return newArray;
     }
 }

@@ -56,16 +56,22 @@ public static class DeckBrowser
         }
     }
 
-    private static async Task BrowseMode()
+    public static string GetNumberedDeckList()
     {
-        App.ClearScreen();
-        
         string text = string.Empty;
 
         string[] deckNames = DeckProvider.GetDeckNames().ToArray();
         for (int i = 0; i < deckNames.Length; i++)
             text += $"\t{i + 1}) " + deckNames[i] + "\n";
 
+        return text;
+    }
+
+    private static async Task BrowseMode()
+    {
+        App.ClearScreen();
+        
+        string text = GetNumberedDeckList();
         text += "\nChoose deck to browse (enter 'q' to return): ";
 
         int deckIndex = Input.UserInput(text, DeckProvider.DeckPaths.Length, out bool quit, keyPhrase: "q");
@@ -196,13 +202,13 @@ public static class DeckBrowser
         App.ClearScreen();
 
         string[] answers = entry.AnswersOptions;
-        answers.Shuffle();
+        string[] answeroptions = answers.Shuffle();
         
         string text = $"{(entry.Title.Length <= 0 ? string.Empty : $"{entry.Title}\n")}" +
             $"{entry.Question}\n\n";
 
-        for (int i = 0; i < answers.Length; i++)
-            text += $"\t{i + 1}) {answers[i]}\n";
+        for (int i = 0; i < answeroptions.Length; i++)
+            text += $"\t{i + 1}) {answeroptions[i]}\n";
         
         text += "\nChoose right answers ('q' to return | 's' to skip): ";
 
@@ -236,8 +242,8 @@ public static class DeckBrowser
                 foreach (var part in answerParts)
                 {
                     if (int.TryParse(part, out int index))
-                        if (--index < answers.Length)
-                            answer = answer.Replace(part, answers[index]);
+                        if (--index < answeroptions.Length)
+                            answer = answer.Replace(part, answeroptions[index]);
                 }
 
                 entry.Answer(answer);

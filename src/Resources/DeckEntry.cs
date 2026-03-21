@@ -164,7 +164,7 @@ public class DeckEntry
         if (index != null)
             str = $"{index})";
 
-        str += $"{(Title.Length <= 0 ? string.Empty : $"\tTitle:\t\t {Title}")}\n"
+        str += $"{(Title.Length <= 0 ? string.Empty : $"\tTitle:\t\t {Title}\n")}"
             + $"\tQuestion:\t {Question}\n";
 
         if (!parentLink.UseSuperMemo)

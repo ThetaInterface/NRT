@@ -1,11 +1,13 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 using NRT.Flow;
 using NRT.Resource;
-using System.Linq;
-using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
 
 namespace NRT.Core;
 
@@ -48,10 +50,30 @@ public static class DeckProvider
     public static IEnumerable<int> GetEntryCounts()
     {
         if (Decks.Count <= 0)
-            throw new InvalidOperationException("DeckPath list does not contain anything! Run 'DeckProvider.LoadDeckPaths()' first!");
+            throw new InvalidOperationException("Deck list does not contain anything! Run 'DeckProvider.LoadDecks()' first!");
 
         foreach (var deck in Decks)
             yield return deck.GetEntriesByDate(DateTime.Now).Count();
+    }
+
+    public static async Task DeleteDeck(int index, bool localy = true)
+    {
+        if (DeckPaths.Length <= 0)
+            throw new InvalidOperationException("DeckPath list does not contain anything! Run 'DeckProvider.LoadDeckPaths()' first!");
+
+        if (localy && Decks.Count <= 0)
+            throw new InvalidOperationException("Deck list does not contain anything! Run 'DeckProvider.LoadDecks()' first!");
+
+        if (localy && index >= Decks.Count || index < 0)
+            throw new InvalidDataException($"Decks list does not contain index {index}!");
+
+        Deck deckToDelete = await ProvideDeck(index, DeckPaths[index], true);
+        deckToDelete.Delete();
+
+        if (localy)
+            Decks.RemoveAt(index);
+
+        LoadDeckPaths();
     }
 
     public static async Task LoadDecks()
@@ -84,9 +106,9 @@ public static class DeckProvider
         }
     }
 
-    public static async Task<Deck> ProvideDeck(int index, string path, bool liteMode)
+    public static async Task<Deck> ProvideDeck(int index, string path, bool readFromFile = false)
     {
-        if (liteMode)
+        if (readFromFile)
         {
             Result<Deck> result = await Deck.ReadDeckAsync(path);
 
