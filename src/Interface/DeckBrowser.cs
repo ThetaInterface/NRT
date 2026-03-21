@@ -249,7 +249,10 @@ public static class DeckBrowser
                             answer = answer.Replace(part, answeroptions[index - 1]);
                 }
 
-                entry.Answer(answer);
+                bool isCorrect = entry.Answer(answer);
+
+                Console.WriteLine("\n" + (isCorrect ? "Correct!" : "Mistake!"));
+                App.ReadLine();
 
                 break;
             }

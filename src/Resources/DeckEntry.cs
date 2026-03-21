@@ -43,7 +43,7 @@ public class DeckEntry
 
     public string GetAnswerOptions() => ConnectStrings(AnswersOptions);
     
-    public void Answer(string answer)
+    public bool Answer(string answer)
     {
         if (parentLink == null)
             throw new InvalidOperationException("Parent is not provided!");
@@ -102,6 +102,8 @@ public class DeckEntry
         Difficulty = Math.Round(Difficulty, 3);
 
         ShowDate = ShowDate.GetValueOrDefault().AddDays(willShowNextTimeAfterDays);
+
+        return isCorrect;
     }
 
     public void Answer(int quality)

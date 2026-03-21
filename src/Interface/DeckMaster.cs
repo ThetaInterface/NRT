@@ -172,7 +172,7 @@ public static class DeckMaster
 
             App.ClearScreen(); 
 
-            textToShow = prefix + "Enter a question for entry: ";
+            textToShow = prefix + "Enter a question for entry ('q' to quit): ";
             entryQuestion = Input.UserInput(textToShow, App.NOT_ALLOWED_NAMES, inverted: true, toLower: false);
 
             if (entryQuestion.Equals("q")) return;
