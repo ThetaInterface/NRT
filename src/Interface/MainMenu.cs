@@ -20,7 +20,6 @@ public static class MainMenu
                 case '1': await DeckBrowser.Show(); break;
                 case '2': await DeckMaster.Show(); break;
                 case '3': break;
-                case '4': break;
                 
                 case 'q': return;
             }

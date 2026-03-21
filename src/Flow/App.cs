@@ -10,6 +10,22 @@ public static partial class App
 {
     private const bool DEBUG = false;
 
+    internal static readonly string[] NOT_ALLOWED_NAMES = [
+        " "
+    ];
+
+    internal static readonly char[] NOT_ALLOWED_CHARS = [
+        '/', 
+        '\\',
+        '<',
+        '>',
+        ':',
+        '"',
+        '|',
+        '?',
+        '*'
+    ];
+
     public const string DATA_FOLDER_NAME = "data";
     public const string ENTRIES_FOLDER_NAME = "entries";
 

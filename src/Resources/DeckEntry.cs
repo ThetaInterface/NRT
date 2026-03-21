@@ -23,15 +23,18 @@ public class DeckEntry
 
     public int CorrectAnswerStreak { get; set; } = 0;
     public double Difficulty { get; set; } = 2.5;
+
+    public bool IsAnswersOrderImportant { get; set; } = false;
     
     public DeckEntry() { }
 
-    public DeckEntry(string title, string question, string[] answers, string[] correctAnswers)
+    public DeckEntry(string title, string question, string[] answers, string[] correctAnswers, bool isAnswerOrderImportant)
     {
         Title = title;
         Question = question;
         AnswersOptions = answers;
         CorrectAnswers = correctAnswers;
+        IsAnswersOrderImportant = isAnswerOrderImportant;
     }
 
     public void ConnectToDeck(Deck deck) => parentLink = deck;
@@ -51,20 +54,28 @@ public class DeckEntry
         string[] answerParts = answer.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         bool isCorrect = false;
-        if (answerParts.Length != CorrectAnswers.Length)
-            isCorrect = false;
+        if (IsAnswersOrderImportant)
+        {
+            if (answer.Equals(GetCorrectAnswer()))
+                isCorrect = true;
+        }
         else
         {
-            foreach (var part in answerParts)
+            if (answerParts.Length != CorrectAnswers.Length)
+                isCorrect = false;
+            else
             {
-                if (!CorrectAnswers.Contains(part))
+                foreach (var part in answerParts)
                 {
-                    isCorrect = false;
+                    if (!CorrectAnswers.Contains(part))
+                    {
+                        isCorrect = false;
 
-                    break;
+                        break;
+                    }
+                    else
+                        isCorrect = true;
                 }
-                else
-                    isCorrect = true;
             }
         }
 

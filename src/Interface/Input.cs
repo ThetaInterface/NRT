@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 
 using NRT.Flow;
 
@@ -22,7 +22,7 @@ public static class Input
         }
     }
 
-    public static int UserInput(string text, int ceiling, out bool isKeyPhrase, int floor = 1, string? keyPhrase = null)
+    public static int UserInput(string text, int ceiling, out bool isKeyPhrase, int floor = 1, string? keyPhrase = null, bool toLower = true)
     {
         while (true)
         {
@@ -30,6 +30,9 @@ public static class Input
             Console.Write(text);
 
             string userInput = App.ReadLine();
+
+            if (toLower)
+                userInput = userInput.ToLower();
 
             if (keyPhrase != null && keyPhrase.Equals(userInput))
             {
@@ -60,16 +63,19 @@ public static class Input
         }
     }
 
-    public static string UserInput(string text, string[] vocabulary, char[]? notAllowedSymbols = null, bool inverted = false)
+    public static string UserInput(string text, string[] vocabulary, char[]? notAllowedSymbols = null, bool inverted = false, bool toLower = true)
     {
         while (true)
         {
             App.ClearScreen();
             Console.Write(text);
 
-            string input = App.ReadLine();
+            string userInput = App.ReadLine();
 
-            if (notAllowedSymbols != null && input.IndexOfAny(notAllowedSymbols) != -1)
+            if (toLower)
+                userInput = userInput.ToLower();
+
+            if (notAllowedSymbols != null && userInput.IndexOfAny(notAllowedSymbols) != -1)
             {
                 Console.WriteLine("Text contains not allowed symbol!");
                 Console.ReadKey();
@@ -77,10 +83,10 @@ public static class Input
                 continue;
             }
 
-            if (!inverted && vocabulary.Contains(input.ToLower()))
-                return input;
-            else if (inverted && !vocabulary.Contains(input.ToLower()))
-                return input;
+            if (!inverted && vocabulary.Contains(userInput.ToLower()))
+                return userInput;
+            else if (inverted && !vocabulary.Contains(userInput.ToLower()))
+                return userInput;
             else
             {
                 Console.WriteLine("This text is not allowed!");

@@ -3,19 +3,15 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 using NRT.Flow;
 using NRT.Resource;
-using System.Runtime.Serialization;
 
 namespace NRT.Core;
 
 public static class DeckProvider
 {
-    [NotNull]
     public static string[] DeckPaths { get; private set; } = [];
-    [NotNull]
     public static List<Deck> Decks { get; private set; } = [];
 
     public static Result<bool> LoadDeckPaths()

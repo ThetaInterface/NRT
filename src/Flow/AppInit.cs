@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 using NRT.Core;
@@ -9,7 +10,10 @@ namespace NRT.Flow;
 public static partial class App
 {
     public static async Task Initialization()
-    {
+    {   
+        Console.OutputEncoding = Encoding.UTF8;
+        Console.InputEncoding = Encoding.UTF8;
+
         await CheckFiles();
 
         await ConfigProvider.LoadAsync();

@@ -11,10 +11,6 @@ namespace NRT.Interface;
 
 public static class DeckMaster
 {
-    internal static readonly string[] NOT_ALLOWED_NAMES = [
-        " "
-    ];
-
     public static async Task Show()
     {
         string textToShow = "\t1) Create new deck\n\t2) Edit existing deck\n\t3) Delete existing deck\n\tq) Quit\n\nChoose action: ";
@@ -50,7 +46,7 @@ public static class DeckMaster
             throw result.Exception;
 
         textToShow = "Enter a name for new deck ('q' to quit): ";
-        deckTitle = Input.UserInput(textToShow, [..NOT_ALLOWED_NAMES, ..DeckProvider.GetDeckNames(toLower: true)], Path.GetInvalidFileNameChars(), inverted: true);
+        deckTitle = Input.UserInput(textToShow, [..App.NOT_ALLOWED_NAMES, ..DeckProvider.GetDeckNames(toLower: true)], App.NOT_ALLOWED_CHARS, inverted: true, toLower: false);
 
         if (deckTitle.Equals("q")) return;
         
@@ -65,7 +61,10 @@ public static class DeckMaster
             useSuperMemo = true;
 
         Deck newDeck = new(deckTitle, useSuperMemo);
-        await Deck.WriteDeckAsync(newDeck);
+        Result<bool> writeResult = await Deck.WriteDeckAsync(newDeck);
+
+        if (!writeResult.Success)
+            throw writeResult.Exception;        
     }
 
     private static async Task EditDeck()
@@ -151,10 +150,14 @@ public static class DeckMaster
         string entryTitle;
         string entryQuestion;
 
-        string[] entryAnswerOption;
+        string[] entryAnswerOption = [];
         string[] entryCorrectAnswers;
 
+        bool isAnswerOrderImportant = false;
+
+        string prefix;
         string textToShow;
+        string userInput;
 
         while (true)
         {
@@ -165,30 +168,54 @@ public static class DeckMaster
             
             if (entryTitle.Equals("q")) return;
 
-            App.ClearScreen();
+            prefix = "Title is set!\n";
 
-            textToShow = "Enter a question for entry: ";
-            entryQuestion = Input.UserInput(textToShow, NOT_ALLOWED_NAMES, inverted: true);
+            App.ClearScreen(); 
+
+            textToShow = prefix + "Enter a question for entry: ";
+            entryQuestion = Input.UserInput(textToShow, App.NOT_ALLOWED_NAMES, inverted: true, toLower: false);
 
             if (entryQuestion.Equals("q")) return;
 
-            App.ClearScreen();
-
-            textToShow = "Enter a answer option for entry (press 'enter' to end): ";
-            entryAnswerOption = Input.UserInput(textToShow).ToArray();
+            prefix += "Question is set!\n";
 
             App.ClearScreen();
 
-            textToShow = "Enter a correct answer for entry (press 'enter' to end): ";
+            if (!deck.UseSuperMemo)
+            {
+                textToShow = prefix + "Enter an answer option for entry (press 'enter' to end): ";
+                entryAnswerOption = Input.UserInput(textToShow).ToArray();
+
+                prefix += "Answer options is set!\n";
+            }
+
+            App.ClearScreen();
+            
+            textToShow = prefix + "Enter a correct answer for entry (press 'enter' to end): ";
             entryCorrectAnswers = Input.UserInput(textToShow).ToArray();
+        
+            prefix += "Correct answer is set!\n";
 
-            DeckEntry newEntry = new(entryTitle, entryQuestion, entryAnswerOption, entryCorrectAnswers);
+            App.ClearScreen();
+
+            if (entryCorrectAnswers.Length > 1)
+            {
+                textToShow = prefix + "Is answer order is important? (y/n) ";
+
+                userInput = Input.UserInput(textToShow, ["y", "n"]);
+                if (userInput.Equals("y"))
+                    isAnswerOrderImportant = true;
+            }
+            else
+                isAnswerOrderImportant = false;
+
+            DeckEntry newEntry = new(entryTitle, entryQuestion, entryAnswerOption, entryCorrectAnswers, isAnswerOrderImportant);
             await deck.AddEntry(newEntry);
 
             App.ClearScreen();
 
             textToShow = "Create more? (y/n) ";
-            string userInput = Input.UserInput(textToShow, ["y", "n"]);
+            userInput = Input.UserInput(textToShow, ["y", "n"]);
 
             if (userInput.Equals("n"))
                 break;

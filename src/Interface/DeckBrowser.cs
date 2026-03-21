@@ -145,7 +145,10 @@ public static class DeckBrowser
             if (end) break;
         }
 
-        await Deck.WriteDeckAsync(deck);
+        Result<bool> writeResult = await Deck.WriteDeckAsync(deck);
+
+        if (!writeResult.Success)
+            throw writeResult.Exception;    
 
         entries = deck.GetEntriesByDate(DateTime.Now).ToArray();
 
@@ -242,8 +245,8 @@ public static class DeckBrowser
                 foreach (var part in answerParts)
                 {
                     if (int.TryParse(part, out int index))
-                        if (--index < answeroptions.Length)
-                            answer = answer.Replace(part, answeroptions[index]);
+                        if (index - 1 < answeroptions.Length)
+                            answer = answer.Replace(part, answeroptions[index - 1]);
                 }
 
                 entry.Answer(answer);

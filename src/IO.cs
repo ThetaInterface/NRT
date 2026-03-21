@@ -7,7 +7,7 @@ namespace NRT;
 
 public static class IO
 {
-    private static readonly JsonSerializerOptions DEFAULT_SERIALIZE_OPTIONS = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions DEFAULT_SERIALIZE_OPTIONS = new() { WriteIndented = true};
 
     public static async Task<Result<T>> TryDeserializeAsync<T>(string path)
     {

@@ -26,7 +26,7 @@ public class Deck
 
     public Deck(string title, bool useSuperMemo)
     {
-        if (title.IndexOfAny(Path.GetInvalidFileNameChars()) != -1)
+        if (title.IndexOfAny(App.NOT_ALLOWED_CHARS) != -1)
             throw new InvalidDataException("Title contains not allowed symbols!");
         
         DeckTitle = title;
@@ -93,7 +93,7 @@ public class Deck
             return Result<Deck>.Fail(e);
         }
 
-        return await UpdateDeckAsync(old => new Deck()
+        return await ModifyDeckAsync(old => new Deck()
         {
             DeckTitle = title,
             Entries = old.Entries
@@ -116,7 +116,7 @@ public class Deck
         return await IO.TrySerializeAsync(deck, path);
     }
 
-    public async Task<Result<Deck>> UpdateDeckAsync(Func<Deck, Deck> modify)
+    public async Task<Result<Deck>> ModifyDeckAsync(Func<Deck, Deck> modify)
     {
         Deck modified = modify(this);
         Result<bool> result = await WriteDeckAsync(modified);
