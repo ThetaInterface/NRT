@@ -37,8 +37,8 @@ public static partial class App
     {
         Logger.Error(e.ExceptionObject as Exception);
 
-        Console.Write(e.ExceptionObject.ToString());
-        Console.WriteLine("\n\n\nPress any key to close application...");
+        Write(e.ExceptionObject.ToString());
+        Write("\n\n\nPress any key to close application...", nextLine: true);
         Console.ReadKey();
 
         OnApplicationClosed();

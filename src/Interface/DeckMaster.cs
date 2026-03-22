@@ -32,7 +32,7 @@ public static class DeckMaster
         }
     }
 
-    private static async Task CreateDeck()
+    private static async Task CreateDeck(Deck? fromDeck = null)
     {
         string deckTitle;
         bool useSuperMemo;
@@ -44,23 +44,46 @@ public static class DeckMaster
         Result<bool> result = DeckProvider.LoadDeckPaths();
         if (!result.Success && result.Exception is not FileNotFoundException)
             throw result.Exception;
+        
+        if (fromDeck == null)
+            textToShow = "Enter a name for new deck ('q' to quit): ";
+        else
+            textToShow = "Enter a new name for deck ('q' to quit, 's' to skip): ";
 
-        textToShow = "Enter a name for new deck ('q' to quit): ";
         deckTitle = Input.UserInput(textToShow, [..App.NOT_ALLOWED_NAMES, ..DeckProvider.GetDeckNames(toLower: true)], App.NOT_ALLOWED_CHARS, inverted: true, toLower: false);
 
-        if (deckTitle.Equals("q")) return;
+        if (deckTitle.Equals("q")) 
+            return;
+        else if (deckTitle.Equals("s") && fromDeck != null)
+            deckTitle = fromDeck.DeckTitle;
         
         App.ClearScreen();
-
-        textToShow = "Do you want create 'Test' deck? (y/n): ";
+        
+        if (fromDeck == null)
+            textToShow = "Do you want create 'Test' deck? (y/n): ";
+        else
+            textToShow = $"Change deck type to {(fromDeck.UseSuperMemo ? "'Test' format" : "'Card' format")} (y/n): ";
+        
         string userInput = Input.UserInput(textToShow, ["y", "n"]);
 
         if (userInput.Equals("y"))
-            useSuperMemo = false;
+            useSuperMemo = fromDeck != null && !fromDeck.UseSuperMemo;
         else
-            useSuperMemo = true;
+            useSuperMemo = fromDeck == null || fromDeck.UseSuperMemo;
 
-        Deck newDeck = new(deckTitle, useSuperMemo);
+        Result<Deck> modifyResult = await Deck.ModifyDeckAsync(fromDeck ?? new Deck(), newDeck => new Deck()
+        {
+            DeckTitle = deckTitle,
+            Entries = fromDeck == null ? [] : fromDeck.Entries,
+            UseSuperMemo = useSuperMemo,
+            LastReviewDate = fromDeck?.LastReviewDate,
+            ReviewCount = fromDeck == null ? default : fromDeck.ReviewCount
+        });
+
+        if (!modifyResult.Success)
+            throw modifyResult.Exception;
+        
+        Deck newDeck = modifyResult.Value;
         Result<bool> writeResult = await Deck.WriteDeckAsync(newDeck);
 
         if (!writeResult.Success)
@@ -78,21 +101,16 @@ public static class DeckMaster
             throw result.Exception;
         else if (!result.Success && result.Exception is FileNotFoundException)
         {
-            Console.WriteLine("There's no created decks yet!");
+            App.Write("There's no created decks yet!", nextLine: true);
             Console.ReadKey();
 
             return;
         }
 
-        textToShow = string.Empty;
-
-        string[] names = DeckProvider.GetDeckNames().ToArray();
-        for (int i = 0; i < names.Length; i++)
-            textToShow += $"\t{i + 1}) {names[i]}\n";
-
+        textToShow = DeckBrowser.GetNumberedDeckList();
         textToShow += "\nChoose deck to edit ('q' to quit): ";
 
-        int deckIndex = Input.UserInput(textToShow, ceiling: names.Length, out bool quit, keyPhrase: "q");
+        int deckIndex = Input.UserInput(textToShow, ceiling: DeckProvider.DeckPaths.Length, out bool quit, keyPhrase: "q");
 
         if (quit) return;
 
@@ -100,16 +118,17 @@ public static class DeckMaster
 
         Deck deckEdit = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], readFromFile: true);
 
-        textToShow = "\t1) Add entry\n\t2) Edit entries\n\t3) Delete entries\n\tq) Quit\n\nChoose action: ";
-        int userInput = Input.UserInput(textToShow, ceiling: 3, out quit, keyPhrase: "q");
+        textToShow = "\t1) Change deck properties\n\t2) Add entry\n\t3) Edit entries\n\t4) Delete entries\n\tq) Quit\n\nChoose action: ";
+        int userInput = Input.UserInput(textToShow, ceiling: 4, out quit, keyPhrase: "q");
 
         if (quit) return;
 
         switch (userInput)
         {
-            case 1: await AddEntriesToDeck(deckEdit); break;
-            case 2: break;
-            case 3: break;
+            case 1: await CreateDeck(fromDeck: deckEdit); break;
+            case 2: await AddEntriesToDeck(toDeck: deckEdit); break;
+            case 3: await EditEntries(ofDeck: deckEdit, false); break;
+            case 4: await EditEntries(ofDeck: deckEdit, true); break;
 
             default:
                 throw new InvalidOperationException("Invalid input!");
@@ -125,7 +144,7 @@ public static class DeckMaster
             throw result.Exception;
         else if (!result.Success && result.Exception is FileNotFoundException)
         {
-            Console.WriteLine("There's no created decks yet!");
+            App.Write("There's no created decks yet!", nextLine: true);
             Console.ReadKey();
 
             return;
@@ -138,14 +157,14 @@ public static class DeckMaster
 
         if (quit) return;
 
-        Console.Write("Are you sure? (press 'enter' to agree)");
+        App.Write("Are you sure? (press 'enter' to agree) ");
         string userInput = App.ReadLine();
 
         if (userInput.Equals(""))
             await DeckProvider.DeleteDeck(deckIndex - 1, false);
     }
 
-    private static async Task AddEntriesToDeck(Deck deck)
+    private static async Task AddEntriesToDeck(Deck toDeck)
     {
         string entryTitle;
         string entryQuestion;
@@ -163,7 +182,7 @@ public static class DeckMaster
         {
             App.ClearScreen();
 
-            Console.Write("Enter a title for entry (press 'enter' to skip, enter 'q' to quit): ");
+            App.Write("Enter a title for entry (press 'enter' to skip, enter 'q' to quit): ");
             entryTitle = Console.ReadLine() ?? throw new InvalidOperationException("Console input is null!");
             
             if (entryTitle.Equals("q")) return;
@@ -181,7 +200,7 @@ public static class DeckMaster
 
             App.ClearScreen();
 
-            if (!deck.UseSuperMemo)
+            if (!toDeck.UseSuperMemo)
             {
                 textToShow = prefix + "Enter an answer option for entry (press 'enter' to end): ";
                 entryAnswerOption = Input.UserInput(textToShow).ToArray();
@@ -210,7 +229,7 @@ public static class DeckMaster
                 isAnswerOrderImportant = false;
 
             DeckEntry newEntry = new(entryTitle, entryQuestion, entryAnswerOption, entryCorrectAnswers, isAnswerOrderImportant);
-            await deck.AddEntry(newEntry);
+            await toDeck.AddEntry(newEntry);
 
             App.ClearScreen();
 
@@ -220,5 +239,10 @@ public static class DeckMaster
             if (userInput.Equals("n"))
                 break;
         }
+    }
+
+    private static async Task EditEntries(Deck ofDeck, bool delete)
+    {
+        
     }
 }

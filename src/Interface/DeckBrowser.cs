@@ -23,7 +23,7 @@ public static class DeckBrowser
 
         if (!result.Success)
         {
-            Console.WriteLine("There's no decks created yet!\n\nPress any button to return...");
+            App.Write("There's no decks created yet!\n\nPress any button to return...", nextLine: true);
             Console.ReadKey();
 
             return;
@@ -67,6 +67,20 @@ public static class DeckBrowser
         return text;
     }
 
+    public static string ComposeEntryList(List<DeckEntry> entries)
+    {
+        string composed = string.Empty;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            composed += "------------------------------\n";
+            composed += entries[i].ToString(i + 1);
+        }
+
+        composed += "------------------------------\n";
+
+        return composed;
+    }
+
     private static async Task BrowseMode()
     {
         App.ClearScreen();
@@ -78,32 +92,32 @@ public static class DeckBrowser
 
         if (quit) return;
 
-        App.ClearScreen();
-
-        Deck deck = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], ConfigProvider.AppConfig.LiteMode);
-
-        text = string.Empty;
-        cardsText = string.Empty;
-        for (int i = 0; i < deck.Entries.Count; i++)
+        while (true)
         {
-            cardsText += "------------------------------\n";
-            cardsText += deck.Entries[i].ToString(i + 1);
-        }
+            App.ClearScreen();
 
-        cardsText += "------------------------------\n";
+            Deck deck = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], ConfigProvider.AppConfig.LiteMode);
 
-        text += "\n\ts) Search mode\n\tc) Sort cards\n\te) Edit\n\tq) Quit\n\nChoose action: ";
+            cardsText = ComposeEntryList(deck.Entries);
+            text = "\n\ts) Search mode\n\tc) Sort cards\n\te) Edit\n\tq) Quit\n\nChoose action: ";
 
-        string actionCode = Input.UserInput(cardsText + text, ["s", "c", "e", "q"]);
-        switch (actionCode)
-        {
+            string actionCode = Input.UserInput(cardsText + text, ["s", "c", "e", "q"]);
+            switch (actionCode)
+            {
+                case "s":
+                    List<DeckEntry> entries = [..deck.SearchByText("a3")];
 
+                    cardsText = ComposeEntryList(entries);
 
-            case "q":
-                return;
+                    Console.ReadKey();
+                    return;
 
-            default:
-                throw new InvalidOperationException("Invalid input!");
+                case "q":
+                    return;
+
+                default:
+                    throw new InvalidOperationException("Invalid input!");
+            }
         }
     }
 
@@ -156,7 +170,7 @@ public static class DeckBrowser
 
         if (entries.Length <= 0) 
         {
-            Console.WriteLine("All cards reviewed!\nPress any button to return...");
+            App.Write("All cards reviewed!\nPress any button to return...", nextLine: true);
             Console.ReadKey();
         }
     }
@@ -173,7 +187,7 @@ public static class DeckBrowser
         wantToEnd = false;
 
         App.ClearScreen();
-        Console.Write(problemText);
+        App.Write(problemText);
 
         string userInput = App.ReadLine();
 
@@ -221,7 +235,7 @@ public static class DeckBrowser
         while (true)
         {
             App.ClearScreen();
-            Console.Write(text);
+            App.Write(text);
 
             string userInput = App.ReadLine();
 
@@ -234,7 +248,7 @@ public static class DeckBrowser
             else if (userInput.Equals("s"))
                 return;
 
-            Console.Write("Are you sure ('enter' to agree)?");
+            App.Write("Are you sure ('enter' to agree)? ");
 
             if (App.ReadLine().Length <= 0)
             {
@@ -251,7 +265,7 @@ public static class DeckBrowser
 
                 bool isCorrect = entry.Answer(answer);
 
-                Console.WriteLine("\n" + (isCorrect ? "Correct!" : "Mistake!"));
+                App.Write("\n" + (isCorrect ? "Correct!" : "Mistake!"), nextLine: true);
                 App.ReadLine();
 
                 break;

@@ -26,6 +26,8 @@ public static partial class App
         '*'
     ];
 
+    internal static readonly string SPACE = new('\n', 100);
+
     public const string DATA_FOLDER_NAME = "data";
     public const string ENTRIES_FOLDER_NAME = "entries";
 

@@ -72,6 +72,20 @@ public class Deck
 
     public void Delete() => File.Delete(FilePath);
 
+    public IEnumerable<DeckEntry> SearchByText(string search)
+    {
+        foreach (var entry in Entries)
+        {
+            bool contains = entry.Title.Contains(search);
+            contains |= entry.Question.Contains(search);
+            contains |= entry.GetAnswerOptions().Contains(search);
+            contains |= entry.GetCorrectAnswer().Contains(search);
+
+            if (contains)
+                yield return entry;
+        }
+    }
+
     public IEnumerable<DeckEntry> GetEntriesByDate(DateTime date) =>
         Entries.Where(e => e.ShowDate == null || e.ShowDate.Value.Date <= date.Date);
 
@@ -81,23 +95,6 @@ public class Deck
         entry.ConnectToDeck(this);
 
         await WriteDeckAsync(this);
-    }
-
-    public async Task<Result<Deck>> SetDeckTitleAsync(string title)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
-
-        if (title.IndexOfAny(InvalidCharsInPathName) != -1) 
-        {
-            var e = new InvalidDataException($"Invalid file name! '{title}'.");
-            return Result<Deck>.Fail(e);
-        }
-
-        return await ModifyDeckAsync(old => new Deck()
-        {
-            DeckTitle = title,
-            Entries = old.Entries
-        });
     }
 
     public static async Task<Result<Deck>> ReadDeckAsync(string path)
@@ -116,15 +113,21 @@ public class Deck
         return await IO.TrySerializeAsync(deck, path);
     }
 
-    public async Task<Result<Deck>> ModifyDeckAsync(Func<Deck, Deck> modify)
+    public static async Task<Result<Deck>> ModifyDeckAsync(Deck deckToModify, Func<Deck, Deck> modify)
     {
-        Deck modified = modify(this);
+        Deck modified = modify(deckToModify);
         Result<bool> result = await WriteDeckAsync(modified);
 
         if (result.Success)
         {
-            if (!DeckTitle.Equals(modified.DeckTitle))
-                File.Delete(FilePath);
+            if (!deckToModify.DeckTitle.Equals(modified.DeckTitle))
+                File.Delete(deckToModify.FilePath);
+
+            if (modified.UseSuperMemo)
+            {
+                foreach (var entry in modified.Entries)
+                    entry.AnswersOptions = [];
+            }
 
             return Result<Deck>.Ok(modified);
         }        

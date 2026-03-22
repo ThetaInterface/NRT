@@ -13,7 +13,7 @@ public static class Input
         while (true)
         {
             App.ClearScreen();
-            Console.Write(text);
+            App.Write(text);
 
             char input = Console.ReadKey().KeyChar;
 
@@ -27,7 +27,7 @@ public static class Input
         while (true)
         {
             App.ClearScreen();
-            Console.Write(text);
+            App.Write(text);
 
             string userInput = App.ReadLine();
 
@@ -51,13 +51,13 @@ public static class Input
                 }
                 else
                 {
-                    Console.WriteLine($"Enter a number between {floor} and {ceiling}!");
+                    App.Write($"Enter a number between {floor} and {ceiling}!", nextLine: true);
                     Console.ReadKey();
                 }
             }
             else
             {
-                Console.WriteLine("Not a number!");
+                App.Write("Not a number!", nextLine: true);
                 Console.ReadKey();
             }
         }
@@ -68,7 +68,7 @@ public static class Input
         while (true)
         {
             App.ClearScreen();
-            Console.Write(text);
+            App.Write(text);
 
             string userInput = App.ReadLine();
 
@@ -77,7 +77,7 @@ public static class Input
 
             if (notAllowedSymbols != null && userInput.IndexOfAny(notAllowedSymbols) != -1)
             {
-                Console.WriteLine("Text contains not allowed symbol!");
+                App.Write("Text contains not allowed symbol!", nextLine: true);
                 Console.ReadKey();
 
                 continue;
@@ -89,7 +89,7 @@ public static class Input
                 return userInput;
             else
             {
-                Console.WriteLine("This text is not allowed!");
+                App.Write("This text is not allowed!", nextLine: true);
                 Console.ReadKey();
             }
         }
@@ -100,7 +100,7 @@ public static class Input
         while (true)
         {
             App.ClearScreen();
-            Console.Write(text);
+            App.Write(text);
 
             string input = App.ReadLine();
 
