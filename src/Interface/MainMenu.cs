@@ -12,7 +12,7 @@ public static class MainMenu
         {
             App.ClearScreen();
 
-            char action = Input.UserInput("Choose action:\n\t1) Browse decks\n\t2) Deck master\n\t3) Settings\n\tq) Exit\n",
+            char action = Input.UserInput("\t1) Browse decks\n\t2) Deck master\n\t3) Settings\n\tq) Exit\n\nChoose action:",
                 ['1', '2', '3', 'q']);
 
             switch (action)

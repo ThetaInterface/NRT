@@ -102,7 +102,7 @@ public static class DeckMaster
         else if (!result.Success && result.Exception is FileNotFoundException)
         {
             App.Write("There's no created decks yet!", nextLine: true);
-            Console.ReadKey();
+            App.ReadKey();
 
             return;
         }
@@ -145,7 +145,7 @@ public static class DeckMaster
         else if (!result.Success && result.Exception is FileNotFoundException)
         {
             App.Write("There's no created decks yet!", nextLine: true);
-            Console.ReadKey();
+            App.ReadKey();
 
             return;
         }

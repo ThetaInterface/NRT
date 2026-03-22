@@ -12,12 +12,23 @@ public static partial class App
             Console.Clear();
     }
 
+    public static char ReadKey()
+    {
+        if (!DEBUG)
+            return Console.ReadKey().KeyChar;
+        
+        return ReadLine()[0];
+    }
+
     public static string ReadLine() => Console.ReadLine() ?? throw new InvalidOperationException("Console is null!");
     
     public static void Write(string? text, bool nextLine = false) 
     {   
-        Console.Write(SPACE);
-        Console.SetCursorPosition(0, 0);
+        if (!DEBUG)
+        {
+            Console.Write(SPACE);
+            Console.SetCursorPosition(0, 0);
+        }
 
         if (nextLine)
             Console.WriteLine(text);

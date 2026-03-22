@@ -13,7 +13,6 @@ public static partial class App
     internal static readonly string[] NOT_ALLOWED_NAMES = [
         " "
     ];
-
     internal static readonly char[] NOT_ALLOWED_CHARS = [
         '/', 
         '\\',

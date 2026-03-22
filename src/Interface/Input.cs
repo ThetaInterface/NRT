@@ -15,7 +15,7 @@ public static class Input
             App.ClearScreen();
             App.Write(text);
 
-            char input = Console.ReadKey().KeyChar;
+            char input = App.ReadKey();
 
             if (allowedInputChars.Contains(input))
                 return input;
@@ -52,13 +52,13 @@ public static class Input
                 else
                 {
                     App.Write($"Enter a number between {floor} and {ceiling}!", nextLine: true);
-                    Console.ReadKey();
+                    App.ReadKey();
                 }
             }
             else
             {
                 App.Write("Not a number!", nextLine: true);
-                Console.ReadKey();
+                App.ReadKey();
             }
         }
     }
@@ -78,7 +78,7 @@ public static class Input
             if (notAllowedSymbols != null && userInput.IndexOfAny(notAllowedSymbols) != -1)
             {
                 App.Write("Text contains not allowed symbol!", nextLine: true);
-                Console.ReadKey();
+                App.ReadKey();
 
                 continue;
             }
@@ -90,7 +90,7 @@ public static class Input
             else
             {
                 App.Write("This text is not allowed!", nextLine: true);
-                Console.ReadKey();
+                App.ReadKey();
             }
         }
     }

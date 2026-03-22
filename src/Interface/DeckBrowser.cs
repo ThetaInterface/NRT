@@ -24,7 +24,7 @@ public static class DeckBrowser
         if (!result.Success)
         {
             App.Write("There's no decks created yet!\n\nPress any button to return...", nextLine: true);
-            Console.ReadKey();
+            App.ReadKey();
 
             return;
         }
@@ -109,7 +109,7 @@ public static class DeckBrowser
 
                     cardsText = ComposeEntryList(entries);
 
-                    Console.ReadKey();
+                    App.ReadKey();
                     return;
 
                 case "q":
@@ -171,7 +171,7 @@ public static class DeckBrowser
         if (entries.Length <= 0) 
         {
             App.Write("All cards reviewed!\nPress any button to return...", nextLine: true);
-            Console.ReadKey();
+            App.ReadKey();
         }
     }
 

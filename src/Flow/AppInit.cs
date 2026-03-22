@@ -39,7 +39,7 @@ public static partial class App
 
         Write(e.ExceptionObject.ToString());
         Write("\n\n\nPress any key to close application...", nextLine: true);
-        Console.ReadKey();
+        ReadKey();
 
         OnApplicationClosed();
     }
