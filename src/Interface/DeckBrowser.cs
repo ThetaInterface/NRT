@@ -11,9 +11,12 @@ namespace NRT.Interface;
 
 public static class DeckBrowser
 {
+    internal const string QUIT_PHRASE = "q";
+    internal const string SEARCH_PHRASE = "s";
+    internal const string SORT_PHRASE = "c";
+
     private static List<int> entryCounts = [];
     private static int? overallReviewedCount = null;
-    private static string cardsText = string.Empty;
 
     public static async Task Show()
     {
@@ -29,30 +32,33 @@ public static class DeckBrowser
             return;
         }
 
-        if (!ConfigProvider.AppConfig.LiteMode)
+        while (true)
         {
-            await DeckProvider.LoadDecks();
-            await DeckProvider.UpdateDecks();
+            if (!ConfigProvider.AppConfig.LiteMode)
+            {
+                await DeckProvider.LoadDecks();
+                await DeckProvider.UpdateDecks();
 
-            entryCounts = DeckProvider.GetEntryCounts().ToList();
+                entryCounts = DeckProvider.GetEntryCounts().ToList();
 
-            overallReviewedCount = 0;
-            foreach (var deck in DeckProvider.Decks)
-                overallReviewedCount += deck.ReviewCount;
-        }
+                overallReviewedCount = 0;
+                foreach (var deck in DeckProvider.Decks)
+                    overallReviewedCount += deck.ReviewCount;
+            }
 
-        string text = "\t1) Browser mode\n\t2) Review mode\n\nChoose mode ('q' to return): ";
-        int userInput = Input.UserInput(text, ceiling: 2, out bool quit, keyPhrase: "q");
+            string text = "\t1) Browser mode\n\t2) Review mode\n\nChoose mode ('q' to return): ";
+            int userInput = Input.UserInput(text, ceiling: 2, out string quit, keyPhrases: [QUIT_PHRASE]);
 
-        if (quit) return;
-        
-        switch (userInput)
-        {
-            case 1: await BrowseMode(); break;
-            case 2: await ReviewMode(); break;
+            if (quit.Equals(QUIT_PHRASE)) break;
             
-            default:
-                throw new InvalidOperationException("Invalid input!");
+            switch (userInput)
+            {
+                case 1: await BrowseMode(); break;
+                case 2: await ReviewMode(); break;
+                
+                default:
+                    throw new InvalidOperationException("Invalid input!");
+            }
         }
     }
 
@@ -85,93 +91,112 @@ public static class DeckBrowser
     {
         App.ClearScreen();
         
-        string text = GetNumberedDeckList();
-        text += "\nChoose deck to browse (enter 'q' to return): ";
-
-        int deckIndex = Input.UserInput(text, DeckProvider.DeckPaths.Length, out bool quit, keyPhrase: "q");
-
-        if (quit) return;
-
         while (true)
         {
-            App.ClearScreen();
+            string text = GetNumberedDeckList();
+            text += "\nChoose deck to browse (enter 'q' to return): ";
 
-            Deck deck = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], ConfigProvider.AppConfig.LiteMode);
+            int deckIndex = Input.UserInput(text, DeckProvider.DeckPaths.Length, out string quit, keyPhrases: [QUIT_PHRASE]);
 
-            cardsText = ComposeEntryList(deck.Entries);
-            text = "\n\ts) Search mode\n\tc) Sort cards\n\te) Edit\n\tq) Quit\n\nChoose action: ";
+            if (quit.Equals(QUIT_PHRASE)) break;
 
-            string actionCode = Input.UserInput(cardsText + text, ["s", "c", "e", "q"]);
-            switch (actionCode)
+            while (true)
             {
-                case "s":
-                    List<DeckEntry> entries = [..deck.SearchByText("a3")];
+                quit = "";
 
-                    cardsText = ComposeEntryList(entries);
+                App.ClearScreen();
 
-                    App.ReadKey();
-                    return;
+                Deck deck = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], ConfigProvider.AppConfig.LiteMode);
 
-                case "q":
-                    return;
+                string cardsText = ComposeEntryList(deck.Entries);
+                text = "\n\ts) Search\n\tc) Sort\n\tq) Quit\n\nChoose action: ";
 
-                default:
-                    throw new InvalidOperationException("Invalid input!");
+                string actionCode = Input.UserInput(cardsText + text, ["s", "c", "q"]);
+                switch (actionCode)
+                {
+                    case SEARCH_PHRASE:
+                        App.ClearScreen();
+
+                        App.Write("Enter a text to search by: ", nextLine: false, space: false);
+                        string searchOption = App.ReadLine();
+
+                        List<DeckEntry> entries = [..deck.SearchByText(searchOption, out _)];
+
+                        text = "\nPress any key to continue...";
+                        cardsText = ComposeEntryList(entries);
+                        
+                        App.Write(cardsText + text, nextLine: true);
+
+                        App.ReadKey();
+                        break;
+                    
+                    case SORT_PHRASE: throw new NotImplementedException();
+
+                    case QUIT_PHRASE: quit = "q"; break;
+
+                    default:
+                        throw new InvalidOperationException("Invalid input!");
+                }
+
+                if (quit.Equals("q")) break;
             }
         }
     }
 
     private static async Task ReviewMode()
     {
-        App.ClearScreen();
-
-        string text = string.Empty;
-        string[] deckNames = DeckProvider.GetDeckNames().ToArray();
-        for (int i = 0; i < deckNames.Length; i++)
+        while (true)
         {
-            text += $"\t{i + 1}) " + deckNames[i];
+            App.ClearScreen();
 
-            if (entryCounts.Count > 0)
-                text += $" ({entryCounts[i]} today)";
+            string text = string.Empty;
+            string[] deckNames = DeckProvider.GetDeckNames().ToArray();
+            for (int i = 0; i < deckNames.Length; i++)
+            {
+                text += $"\t{i + 1}) " + deckNames[i];
 
-            text += "\n";
-        }
+                if (entryCounts.Count > 0)
+                    text += $" ({entryCounts[i]} today)";
 
-        text += $"{(overallReviewedCount != null ? $"\n\tToday review {overallReviewedCount} cards\n\n" : string.Empty)}" + 
-            "Choose deck to start (enter 'q' to return): ";
+                text += "\n";
+            }
 
-        int deckIndex = Input.UserInput(text, DeckProvider.DeckPaths.Length, out bool quit, keyPhrase: "q");
+            text += $"{(overallReviewedCount != null ? $"\n\tToday review {overallReviewedCount} cards\n\n" : string.Empty)}" + 
+                "Choose deck to start (enter 'q' to return): ";
 
-        if (quit) return;
+            int deckIndex = Input.UserInput(text, DeckProvider.DeckPaths.Length, out string quit, keyPhrases: [QUIT_PHRASE]);
 
-        Deck deck = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], ConfigProvider.AppConfig.LiteMode);
-        DeckEntry[] entries = deck.GetEntriesByDate(DateTime.Now).ToArray();
+            if (quit.Equals(QUIT_PHRASE)) break;
 
-        foreach (DeckEntry entry in entries)
-        {
-            bool end;
+            Deck deck = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], ConfigProvider.AppConfig.LiteMode);
+            DeckEntry[] entries = deck.GetEntriesByDate(DateTime.Now).ToArray();
 
-            if (deck.UseSuperMemo)
-                ShowDeckEntryWithSM2(entry, out end);
-            else
-                ShowDeckEntryWithoutSM2(entry, out end);
+            foreach (DeckEntry entry in entries)
+            {
+                bool end;
 
-            if (end) break;
-        }
+                if (deck.UseSuperMemo)
+                    ShowDeckEntryWithSM2(entry, out end);
+                else
+                    ShowDeckEntryWithoutSM2(entry, out end);
 
-        Result<bool> writeResult = await Deck.WriteDeckAsync(deck);
+                if (end) break;
+            }
 
-        if (!writeResult.Success)
-            throw writeResult.Exception;    
+            Result<bool> writeResult = await Deck.WriteDeckAsync(deck);
 
-        entries = deck.GetEntriesByDate(DateTime.Now).ToArray();
+            if (!writeResult.Success)
+                throw writeResult.Exception;    
 
-        App.ClearScreen();
+            entries = deck.GetEntriesByDate(DateTime.Now).ToArray();
 
-        if (entries.Length <= 0) 
-        {
-            App.Write("All cards reviewed!\nPress any button to return...", nextLine: true);
-            App.ReadKey();
+            App.ClearScreen();
+
+            if (entries.Length <= 0) 
+            {
+                App.Write("All cards reviewed!\nPress any button to return...", nextLine: true);
+                App.ReadKey();
+            }
         }
     }
 
@@ -248,7 +273,7 @@ public static class DeckBrowser
             else if (userInput.Equals("s"))
                 return;
 
-            App.Write("Are you sure ('enter' to agree)? ");
+            App.Write("Are you sure ('enter' to agree)? ", space: false);
 
             if (App.ReadLine().Length <= 0)
             {
@@ -265,7 +290,7 @@ public static class DeckBrowser
 
                 bool isCorrect = entry.Answer(answer);
 
-                App.Write("\n" + (isCorrect ? "Correct!" : "Mistake!"), nextLine: true);
+                App.Write("\n" + (isCorrect ? "Correct!" : "Mistake!"), nextLine: true, space: false);
                 App.ReadLine();
 
                 break;

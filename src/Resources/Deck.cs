@@ -72,23 +72,33 @@ public class Deck
 
     public void Delete() => File.Delete(FilePath);
 
-    public IEnumerable<DeckEntry> SearchByText(string search)
+    public List<DeckEntry> SearchByText(string search, out List<int> indices)
     {
-        foreach (var entry in Entries)
+        List<DeckEntry> entries = [];
+        indices = [];
+
+        for (int i = 0; i < Entries.Count; i++)
         {
+            var entry = Entries[i];
+
             bool contains = entry.Title.Contains(search);
             contains |= entry.Question.Contains(search);
             contains |= entry.GetAnswerOptions().Contains(search);
             contains |= entry.GetCorrectAnswer().Contains(search);
 
             if (contains)
-                yield return entry;
+            {
+                entries.Add(entry);
+                indices.Add(i);
+            }
         }
+
+        return entries;
     }
 
     public IEnumerable<DeckEntry> GetEntriesByDate(DateTime date) =>
         Entries.Where(e => e.ShowDate == null || e.ShowDate.Value.Date <= date.Date);
-
+    
     public async Task AddEntry(DeckEntry entry) 
     {
         Entries.Add(entry);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,24 +12,33 @@ namespace NRT.Interface;
 
 public static class DeckMaster
 {
+    internal const string QUIT_PHRASE = "q";
+    internal const string SEARCH_PHRASE = "s";
+    internal const string SORT_PHRASE = "c";
+    internal const string CLEAR_PHRASE = "d";
+
+    internal const string DEFAULT_KEY_PHRASE = "";
+
     public static async Task Show()
     {
-        string textToShow = "\t1) Create new deck\n\t2) Edit existing deck\n\t3) Delete existing deck\n\tq) Quit\n\nChoose action: ";
-
-        App.ClearScreen();
-
-        int userInput = Input.UserInput(textToShow, ceiling: 3, out bool quit, keyPhrase: "q");
-
-        if (quit) return;
-
-        switch (userInput)
+        while (true)
         {
-            case 1: await CreateDeck(); break;
-            case 2: await EditDeck(); break;
-            case 3: await DeleteDeck(); break;
+            App.ClearScreen();
 
-            default:
-                throw new InvalidOperationException("Invalid input!");
+            string textToShow = "\t1) Create new deck\n\t2) Edit existing deck\n\t3) Delete existing deck\n\tq) Quit\n\nChoose action: ";
+            int userInput = Input.UserInput(textToShow, ceiling: 3, out string quit, keyPhrases: [QUIT_PHRASE]);
+
+            if (quit.Equals(QUIT_PHRASE)) break;
+
+            switch (userInput)
+            {
+                case 1: await CreateDeck(); break;
+                case 2: await EditDeck(); break;
+                case 3: await DeleteDeck(); break;
+
+                default:
+                    throw new InvalidOperationException("Invalid input!");
+            }
         }
     }
 
@@ -94,44 +104,50 @@ public static class DeckMaster
     {
         string textToShow;
 
-        App.ClearScreen();
-
-        Result<bool> result = DeckProvider.LoadDeckPaths();
-        if (!result.Success && result.Exception is not FileNotFoundException)
-            throw result.Exception;
-        else if (!result.Success && result.Exception is FileNotFoundException)
+        while (true) 
         {
-            App.Write("There's no created decks yet!", nextLine: true);
-            App.ReadKey();
+            App.ClearScreen();
 
-            return;
-        }
+            Result<bool> result = DeckProvider.LoadDeckPaths();
+            if (!result.Success && result.Exception is not FileNotFoundException)
+                throw result.Exception;
+            else if (!result.Success && result.Exception is FileNotFoundException)
+            {
+                App.Write("There's no created decks yet!", nextLine: true);
+                App.ReadKey();
 
-        textToShow = DeckBrowser.GetNumberedDeckList();
-        textToShow += "\nChoose deck to edit ('q' to quit): ";
+                return;
+            }
 
-        int deckIndex = Input.UserInput(textToShow, ceiling: DeckProvider.DeckPaths.Length, out bool quit, keyPhrase: "q");
+            textToShow = DeckBrowser.GetNumberedDeckList();
+            textToShow += "\nChoose deck to edit ('q' to quit): ";
 
-        if (quit) return;
+            int deckIndex = Input.UserInput(textToShow, ceiling: DeckProvider.DeckPaths.Length, out string quit, keyPhrases: [QUIT_PHRASE]);
 
-        App.ClearScreen();
+            if (quit.Equals(QUIT_PHRASE)) break;
 
-        Deck deckEdit = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], readFromFile: true);
+            while (true) 
+            {
+                App.ClearScreen();
 
-        textToShow = "\t1) Change deck properties\n\t2) Add entry\n\t3) Edit entries\n\t4) Delete entries\n\tq) Quit\n\nChoose action: ";
-        int userInput = Input.UserInput(textToShow, ceiling: 4, out quit, keyPhrase: "q");
+                Deck deckEdit = await DeckProvider.ProvideDeck(deckIndex - 1, DeckProvider.DeckPaths[deckIndex - 1], readFromFile: true);
 
-        if (quit) return;
+                textToShow = "\t1) Change deck properties\n\t2) Add entry\n\t3) Edit entries\n\t4) Delete entries\n\tq) Quit\n\nChoose action: ";
+                int userInput = Input.UserInput(textToShow, ceiling: 4, out quit, keyPhrases: [QUIT_PHRASE]);
 
-        switch (userInput)
-        {
-            case 1: await CreateDeck(fromDeck: deckEdit); break;
-            case 2: await AddEntriesToDeck(toDeck: deckEdit); break;
-            case 3: await EditEntries(ofDeck: deckEdit, false); break;
-            case 4: await EditEntries(ofDeck: deckEdit, true); break;
+                if (quit.Equals(QUIT_PHRASE)) break;
 
-            default:
-                throw new InvalidOperationException("Invalid input!");
+                switch (userInput)
+                {
+                    case 1: await CreateDeck(fromDeck: deckEdit); break;
+                    case 2: await AddEntriesToDeck(toDeck: deckEdit); break;
+                    case 3: await EditEntries(ofDeck: deckEdit, false); break;
+                    case 4: await EditEntries(ofDeck: deckEdit, true); break;
+
+                    default:
+                        throw new InvalidOperationException("Invalid input!");
+                }
+            }
         }
     }
 
@@ -153,9 +169,9 @@ public static class DeckMaster
         string textToShow = DeckBrowser.GetNumberedDeckList();
         textToShow += "\n\nChoose deck to delete ('q' to quit): ";
 
-        int deckIndex = Input.UserInput(textToShow, ceiling: DeckProvider.DeckPaths.Length, out bool quit, keyPhrase: "q");
+        int deckIndex = Input.UserInput(textToShow, ceiling: DeckProvider.DeckPaths.Length, out string quit, keyPhrases: [QUIT_PHRASE]);
 
-        if (quit) return;
+        if (quit.Equals(QUIT_PHRASE)) return;
 
         App.Write("Are you sure? (press 'enter' to agree) ");
         string userInput = App.ReadLine();
@@ -243,6 +259,170 @@ public static class DeckMaster
 
     private static async Task EditEntries(Deck ofDeck, bool delete)
     {
-        
+        List<DeckEntry> entries = ofDeck.Entries;
+        List<int> indices = [];
+
+        string cardsText = DeckBrowser.ComposeEntryList(entries);
+        string actionText = "\n\ts) Search\n\tc) Sort\n\td) Clear filters\n\tq) Quit\n\nChoose action or enter an index of card: ";
+
+        while (true)
+        {
+            cardsText = DeckBrowser.ComposeEntryList(entries);
+
+            int cardIndex = Input.UserInput(cardsText + actionText, ceiling: entries.Count, out string phrase, keyPhrases: [
+                SEARCH_PHRASE, 
+                SORT_PHRASE,
+                CLEAR_PHRASE, 
+                QUIT_PHRASE]);
+
+            if (phrase.Equals(DEFAULT_KEY_PHRASE))
+            {
+                Deck modifiedDeck;
+                Result<bool> writeResult;
+
+                if (delete)
+                {
+                    List<DeckEntry> newEntries = [..ofDeck.Entries];
+
+                    if (indices.Count == 0)
+                        newEntries.RemoveAt(cardIndex - 1);
+                    else
+                        newEntries.RemoveAt(indices[cardIndex - 1]);
+
+                    var result = await Deck.ModifyDeckAsync(ofDeck, modified => new Deck()
+                    {
+                        DeckTitle = ofDeck.DeckTitle,
+                        Entries = newEntries,
+                        UseSuperMemo = ofDeck.UseSuperMemo,
+                        LastReviewDate = ofDeck.LastReviewDate,
+                        ReviewCount = ofDeck.ReviewCount
+                    });
+
+                    if (!result.Success)
+                        throw result.Exception;
+
+                    modifiedDeck = result.Value;
+                    writeResult = await Deck.WriteDeckAsync(modifiedDeck);
+
+                    if (!writeResult.Success)
+                        throw writeResult.Exception;     
+
+                    return;
+                }
+                
+                List<DeckEntry> newEntryList = [..ofDeck.Entries];
+                DeckEntry newEntry = entries[cardIndex - 1];
+
+                EditEntry(ref newEntry);
+
+                if (indices.Count == 0)
+                    newEntryList[cardIndex - 1] = newEntry;
+                else
+                    newEntryList[indices[cardIndex - 1]] = newEntry;
+
+                var modifyResult = await Deck.ModifyDeckAsync(ofDeck, newDeck => new Deck()
+                {
+                    DeckTitle = ofDeck.DeckTitle,
+                    Entries = newEntryList,
+                    UseSuperMemo = ofDeck.UseSuperMemo,
+                    LastReviewDate = ofDeck.LastReviewDate,
+                    ReviewCount = ofDeck.ReviewCount
+                });
+
+                if (!modifyResult.Success)
+                    throw modifyResult.Exception;
+
+                modifiedDeck = modifyResult.Value;
+                writeResult = await Deck.WriteDeckAsync(modifiedDeck);
+
+                if (!writeResult.Success)
+                    throw writeResult.Exception;
+            }
+            else
+            {
+                switch (phrase)
+                {
+                    case SEARCH_PHRASE:
+                        
+                        App.Write(cardsText + "\nEnter a text to search by: ", nextLine: false);
+                        string searchOption = App.ReadLine();
+
+                        entries = ofDeck.SearchByText(searchOption, out indices).ToList();
+
+                        if (entries.Count != indices.Count)
+                            throw new InvalidDataException("Entries count not equals indices' !");
+                        break;
+
+                    case SORT_PHRASE:
+                        throw new NotImplementedException();
+                    
+                    case CLEAR_PHRASE:
+                        entries = ofDeck.Entries;
+                        indices = [];
+                        break;
+
+                    case QUIT_PHRASE:
+                        return;
+                }
+            }
+        }
+    }
+
+    private static void EditEntry(ref DeckEntry entry)
+    {
+        while (true)
+        {
+            string actionText = "\t1) Edit title\n\t2) Edit question\n\t3) Edit answer options\n\t4) Edit correct answers\n\t5) Reset entry\n\tq) Quit" +
+                "\n\nChoose action: ";
+
+            int userInput = Input.UserInput(actionText, ceiling: 5, out string phrase, keyPhrases: [QUIT_PHRASE]);
+
+            if (phrase.Equals("q")) break;
+
+            switch (userInput)
+            {
+                case 1: 
+                    App.ClearScreen();
+                    App.Write($"Currect title: {entry.Title}\nEnter a new title ('q' to cancel): ", space: false);
+
+                    string title = App.ReadLine();
+                    if (title.ToLower().Equals(QUIT_PHRASE)) break;
+
+                    entry.Title = title;
+                    break;
+                case 2:
+                    App.ClearScreen();
+                    actionText = $"Current question: {entry.Question}\nEnter a new title ('q' to cancel): ";
+
+                    string question = Input.UserInput(actionText, ["", " "], inverted: true);
+                    if (question.ToLower().Equals(QUIT_PHRASE)) break;
+
+                    entry.Question = question; 
+                    break;
+                case 3: 
+                    App.ClearScreen();
+                    App.Write($"Current answer options: {DeckEntry.JoinStrings(entry.AnswersOptions)}\nEnter a new title ('q' to cancel): ", space: false);
+
+                    string answerOptions = App.ReadLine();
+                    entry.SetAnswerOptions(answerOptions);
+                    break;
+                case 4: 
+                    App.ClearScreen();
+                    App.Write($"Current correct answer: {DeckEntry.JoinStrings(entry.CorrectAnswers)}\nEnter a new title ('q' to cancel): ", space: false);
+
+                    string correctAnswer = App.ReadLine();
+                    entry.SetCorrectAnswer(correctAnswer);
+                    break;
+                case 5:
+                    entry.LastShownDate = null;
+                    entry.ShowDate = null;
+                    entry.CorrectAnswerStreak = 0;
+                    entry.Difficulty = 2.5; 
+                    break;
+
+                default: 
+                    throw new InvalidOperationException("Invalid input!");
+            }
+        }
     }
 }

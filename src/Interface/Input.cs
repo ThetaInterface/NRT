@@ -22,7 +22,13 @@ public static class Input
         }
     }
 
-    public static int UserInput(string text, int ceiling, out bool isKeyPhrase, int floor = 1, string? keyPhrase = null, bool toLower = true)
+    public static int UserInput(string text, 
+        int ceiling, 
+        out string keyPhrase, 
+        int floor = 1, 
+        string[]? keyPhrases = null, 
+        string defaultKeyPhrase = "", 
+        bool toLower = true)
     {
         while (true)
         {
@@ -34,18 +40,18 @@ public static class Input
             if (toLower)
                 userInput = userInput.ToLower();
 
-            if (keyPhrase != null && keyPhrase.Equals(userInput))
+            if (keyPhrases != null && keyPhrases.Contains(userInput))
             {
-                isKeyPhrase = true;
+                keyPhrase = userInput;
                 
-                return floor;
+                return floor - 1;
             }
 
             if (int.TryParse(userInput, out int result))
             {
                 if (result >= floor && result <= ceiling)
                 {
-                    isKeyPhrase = false;
+                    keyPhrase = defaultKeyPhrase;
 
                     return result;
                 }

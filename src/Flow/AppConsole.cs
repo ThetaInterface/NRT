@@ -22,12 +22,15 @@ public static partial class App
 
     public static string ReadLine() => Console.ReadLine() ?? throw new InvalidOperationException("Console is null!");
     
-    public static void Write(string? text, bool nextLine = false) 
+    public static void Write(string? text, bool nextLine = false, bool space = true) 
     {   
         if (!DEBUG)
         {
-            Console.Write(SPACE);
-            Console.SetCursorPosition(0, 0);
+            if (space)
+            {
+                Console.Write(SPACE);
+                Console.SetCursorPosition(0, 0);
+            }
         }
 
         if (nextLine)
