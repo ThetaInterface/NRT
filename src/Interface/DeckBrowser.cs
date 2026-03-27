@@ -34,17 +34,7 @@ public static class DeckBrowser
 
         while (true)
         {
-            if (!ConfigProvider.AppConfig.LiteMode)
-            {
-                await DeckProvider.LoadDecks();
-                await DeckProvider.UpdateDecks();
-
-                entryCounts = DeckProvider.GetEntryCounts().ToList();
-
-                overallReviewedCount = 0;
-                foreach (var deck in DeckProvider.Decks)
-                    overallReviewedCount += deck.ReviewCount;
-            }
+            await UpdateDeckInfo();
 
             string text = "\t1) Browser mode\n\t2) Review mode\n\nChoose mode ('q' to return): ";
             int userInput = Input.UserInput(text, ceiling: 2, out string quit, keyPhrases: [QUIT_PHRASE]);
@@ -130,7 +120,8 @@ public static class DeckBrowser
                         App.ReadKey();
                         break;
                     
-                    case SORT_PHRASE: throw new NotImplementedException();
+                    case SORT_PHRASE: 
+                        throw new NotImplementedException();
 
                     case QUIT_PHRASE: quit = "q"; break;
 
@@ -147,6 +138,8 @@ public static class DeckBrowser
     {
         while (true)
         {
+            await UpdateDeckInfo();
+
             App.ClearScreen();
 
             string text = string.Empty;
@@ -295,6 +288,20 @@ public static class DeckBrowser
 
                 break;
             }
+        }
+    }
+
+    private static async Task UpdateDeckInfo()
+    {
+        if (!ConfigProvider.AppConfig.LiteMode)
+        {
+            await DeckProvider.UpdateDecks();
+
+            entryCounts = DeckProvider.GetEntryCounts().ToList();
+
+            overallReviewedCount = 0;
+            foreach (var deck in DeckProvider.Decks)
+                overallReviewedCount += deck.ReviewCount;
         }
     }
 }

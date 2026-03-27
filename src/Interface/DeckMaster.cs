@@ -372,10 +372,11 @@ public static class DeckMaster
     {
         while (true)
         {
-            string actionText = "\t1) Edit title\n\t2) Edit question\n\t3) Edit answer options\n\t4) Edit correct answers\n\t5) Reset entry\n\tq) Quit" +
+            string entryText = entry.ToString();
+            string actionText = "\n\t1) Edit title\n\t2) Edit question\n\t3) Edit answer options\n\t4) Edit correct answers\n\t5) Reset entry\n\tq) Quit" +
                 "\n\nChoose action: ";
 
-            int userInput = Input.UserInput(actionText, ceiling: 5, out string phrase, keyPhrases: [QUIT_PHRASE]);
+            int userInput = Input.UserInput(entryText + actionText, ceiling: 5, out string phrase, keyPhrases: [QUIT_PHRASE]);
 
             if (phrase.Equals("q")) break;
 

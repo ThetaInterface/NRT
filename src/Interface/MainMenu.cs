@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 using NRT.Flow;
@@ -19,7 +20,7 @@ public static class MainMenu
             {
                 case '1': await DeckBrowser.Show(); break;
                 case '2': await DeckMaster.Show(); break;
-                case '3': break;
+                case '3': throw new NotImplementedException();
                 
                 case 'q': return;
             }

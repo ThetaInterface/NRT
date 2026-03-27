@@ -95,10 +95,10 @@ public static class DeckProvider
 
     public static async Task UpdateDecks()
     {
-        if (Decks != null)
+        if (!ConfigProvider.AppConfig.LiteMode)
         {
-            foreach (var deck in Decks)
-                await deck.Setup();
+            await LoadDecks();
+            await SetupDecks();
         }
     }
 
@@ -122,5 +122,14 @@ public static class DeckProvider
         }
         else
             return Decks[index];
+    }
+
+    private static async Task SetupDecks()
+    {
+        if (Decks != null)
+        {
+            foreach (var deck in Decks)
+                await deck.Setup();
+        }
     }
 }
