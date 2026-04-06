@@ -273,14 +273,16 @@ public static class DeckBrowser
                 char separator = ConfigProvider.AppConfig.SeparatorSymbol;
                 string[] answerParts = userInput.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                string answer = userInput;
-                foreach (var part in answerParts)
+                for (int i = 0; i < answerParts.Length; i++)
                 {
-                    if (int.TryParse(part, out int index))
+                    if (int.TryParse(answerParts[i], out int index))
                         if (index - 1 < answeroptions.Length)
-                            answer = answer.Replace(part, answeroptions[index - 1]);
+                            answerParts[i] = answeroptions[index - 1];
+                    else
+                        answerParts[i] = "UNRECOGNIZED!";
                 }
 
+                string answer = string.Join(separator, answerParts);
                 bool isCorrect = entry.Answer(answer);
 
                 App.Write("\n" + (isCorrect ? "Correct!" : "Mistake!"), nextLine: true, space: false);

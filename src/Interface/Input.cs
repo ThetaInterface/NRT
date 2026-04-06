@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 using NRT.Flow;
+using NRT.Core;
 
 namespace NRT.Interface;
 
@@ -101,7 +102,7 @@ public static class Input
         }
     }
 
-    public static IEnumerable<string> UserInput(string text, string phraseToQuit = "")
+    public static string[] UserInput(string text, out bool quit, string phraseToQuit = "")
     {
         while (true)
         {
@@ -110,10 +111,19 @@ public static class Input
 
             string input = App.ReadLine();
 
-            if (!input.Equals(phraseToQuit))
-                yield return input;
-            else
-                break;
+            if (input != null && input.Length > 0)
+            {
+                if (input.Equals(phraseToQuit))
+                {
+                    quit = true;
+
+                    return [];
+                }
+
+                quit = false;
+
+                return input.Split(ConfigProvider.AppConfig.SeparatorSymbol, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            }
         }
     }
 }

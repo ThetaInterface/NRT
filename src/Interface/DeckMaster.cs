@@ -194,6 +194,8 @@ public static class DeckMaster
         string textToShow;
         string userInput;
 
+        bool quit;
+
         while (true)
         {
             App.ClearScreen();
@@ -218,8 +220,10 @@ public static class DeckMaster
 
             if (!toDeck.UseSuperMemo)
             {
-                textToShow = prefix + "Enter an answer option for entry (press 'enter' to end): ";
-                entryAnswerOption = Input.UserInput(textToShow).ToArray();
+                textToShow = prefix + "Enter answer options for entry (press 'enter' to end): ";
+                entryAnswerOption = Input.UserInput(textToShow, out quit, QUIT_PHRASE);
+
+                if (entryAnswerOption.Length == 0 && quit) return;
 
                 prefix += "Answer options is set!\n";
             }
@@ -227,7 +231,9 @@ public static class DeckMaster
             App.ClearScreen();
             
             textToShow = prefix + "Enter a correct answer for entry (press 'enter' to end): ";
-            entryCorrectAnswers = Input.UserInput(textToShow).ToArray();
+            entryCorrectAnswers = Input.UserInput(textToShow, out quit, QUIT_PHRASE);
+
+            if (entryCorrectAnswers.Length == 0 && quit) return;
         
             prefix += "Correct answer is set!\n";
 
@@ -370,6 +376,8 @@ public static class DeckMaster
 
     private static void EditEntry(ref DeckEntry entry)
     {
+        bool quit;
+
         while (true)
         {
             string entryText = entry.ToString();
@@ -393,7 +401,7 @@ public static class DeckMaster
                     break;
                 case 2:
                     App.ClearScreen();
-                    actionText = $"Current question: {entry.Question}\nEnter a new title ('q' to cancel): ";
+                    actionText = $"Current question: {entry.Question}\nEnter a new question ('q' to cancel): ";
 
                     string question = Input.UserInput(actionText, ["", " "], inverted: true);
                     if (question.ToLower().Equals(QUIT_PHRASE)) break;
@@ -402,16 +410,22 @@ public static class DeckMaster
                     break;
                 case 3: 
                     App.ClearScreen();
-                    App.Write($"Current answer options: {DeckEntry.JoinStrings(entry.AnswersOptions)}\nEnter a new title ('q' to cancel): ", space: false);
 
-                    string answerOptions = App.ReadLine();
+                    string[] answerOptions = Input.UserInput($"Current answer options: {entry.GetAnswerOptions()}\nEnter a new answer options ('q' to cancel): ",
+                        out quit, QUIT_PHRASE);
+
+                    if (answerOptions.Length ==0 && quit) break;
+
                     entry.SetAnswerOptions(answerOptions);
                     break;
                 case 4: 
                     App.ClearScreen();
-                    App.Write($"Current correct answer: {DeckEntry.JoinStrings(entry.CorrectAnswers)}\nEnter a new title ('q' to cancel): ", space: false);
 
-                    string correctAnswer = App.ReadLine();
+                    string[] correctAnswer = Input.UserInput($"Current correct answer: {entry.GetCorrectAnswer()}\nEnter a new correct answer ('q' to cancel): ",
+                        out quit, QUIT_PHRASE);
+
+                    if (correctAnswer.Length ==0 && quit) break;
+
                     entry.SetCorrectAnswer(correctAnswer);
                     break;
                 case 5:
