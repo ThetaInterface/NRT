@@ -39,27 +39,13 @@ public class DeckEntry
 
     public void ConnectToDeck(Deck deck) => parentLink = deck;
 
-    public static string JoinStrings(string[] parts)
-    {
-        string connected = string.Empty;
-        
-        for (int i = 0; i < parts.Length; i++)
-        {
-            bool isLast = i + 1 == parts.Length;
+    public string GetCorrectAnswer() => string.Join(ConfigProvider.AppConfig.SeparatorSymbol, CorrectAnswers);
 
-            connected += parts[i] + $"{(isLast ? string.Empty : ", ")}";
-        }
+    public string GetAnswerOptions() => string.Join(ConfigProvider.AppConfig.SeparatorSymbol, AnswersOptions);
 
-        return connected;
-    }
-
-    public string GetCorrectAnswer() => JoinStrings(CorrectAnswers);
-
-    public string GetAnswerOptions() => JoinStrings(AnswersOptions);
-
-    public void SetCorrectAnswer(string answer) => CorrectAnswers = BreakString(answer);
+    public void SetCorrectAnswer(string[] answer) => CorrectAnswers = answer;
     
-    public void SetAnswerOptions(string options) => AnswersOptions = BreakString(options);
+    public void SetAnswerOptions(string[] options) => AnswersOptions = options;
     
     public bool Answer(string answer)
     {
@@ -169,13 +155,6 @@ public class DeckEntry
             return 0;
 
         return (second - first).Value.TotalDays;
-    }
-
-    private static string[] BreakString(string str)
-    {
-        return str.Split(ConfigProvider.AppConfig.SeparatorSymbol,
-            StringSplitOptions.RemoveEmptyEntries |
-            StringSplitOptions.TrimEntries);
     }
 
     public string ToString(int? index = null)
