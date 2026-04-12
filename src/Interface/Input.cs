@@ -122,7 +122,7 @@ public static class Input
 
                 quit = false;
 
-                return input.Split(ConfigProvider.AppConfig.SeparatorSymbol, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                return input.Split(ConfigProvider.AppConfig.SeparatorSymbols, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             }
         }
     }

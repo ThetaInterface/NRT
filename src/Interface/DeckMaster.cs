@@ -411,7 +411,7 @@ public static class DeckMaster
                 case 3: 
                     App.ClearScreen();
 
-                    string[] answerOptions = Input.UserInput($"Current answer options: {entry.GetAnswerOptions()}\nEnter a new answer options ('q' to cancel): ",
+                    string[] answerOptions = Input.UserInput($"Current answer options: {entry.GetAnswerOptions(true)}\nEnter a new answer options ('q' to cancel): ",
                         out quit, QUIT_PHRASE);
 
                     if (answerOptions.Length ==0 && quit) break;
@@ -421,7 +421,7 @@ public static class DeckMaster
                 case 4: 
                     App.ClearScreen();
 
-                    string[] correctAnswer = Input.UserInput($"Current correct answer: {entry.GetCorrectAnswer()}\nEnter a new correct answer ('q' to cancel): ",
+                    string[] correctAnswer = Input.UserInput($"Current correct answer: {entry.GetCorrectAnswer(true)}\nEnter a new correct answer ('q' to cancel): ",
                         out quit, QUIT_PHRASE);
 
                     if (correctAnswer.Length ==0 && quit) break;

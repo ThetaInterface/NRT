@@ -218,7 +218,7 @@ public static class DeckBrowser
         else if (userInput.Equals("s"))
             return;
 
-        string rateText = $"\n\nAnswer is: {entry.GetCorrectAnswer()}\n\t" + 
+        string rateText = $"\n\nAnswer is: {entry.GetCorrectAnswer(true)}\n\t" + 
             "1) Dont remember\n\t" + 
             "2) Saw answer and remembered\n\t" + 
             "3) Remembered, but with big effort\n\t" +
@@ -270,8 +270,8 @@ public static class DeckBrowser
 
             if (App.ReadLine().Length <= 0)
             {
-                char separator = ConfigProvider.AppConfig.SeparatorSymbol;
-                string[] answerParts = userInput.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                char[] separators = ConfigProvider.AppConfig.SeparatorSymbols;
+                string[] answerParts = userInput.Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
                 for (int i = 0; i < answerParts.Length; i++)
                 {
@@ -282,7 +282,7 @@ public static class DeckBrowser
                         answerParts[i] = "UNRECOGNIZED!";
                 }
 
-                string answer = string.Join(separator, answerParts);
+                string answer = string.Join(separators.First(), answerParts);
                 bool isCorrect = entry.Answer(answer);
 
                 App.Write("\n" + (isCorrect ? "Correct!" : "Mistake!"), nextLine: true, space: false);

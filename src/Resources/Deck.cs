@@ -83,8 +83,8 @@ public class Deck
 
             bool contains = entry.Title.Contains(search);
             contains |= entry.Question.Contains(search);
-            contains |= entry.GetAnswerOptions().Contains(search);
-            contains |= entry.GetCorrectAnswer().Contains(search);
+            contains |= entry.GetAnswerOptions(false).Contains(search);
+            contains |= entry.GetCorrectAnswer(false).Contains(search);
 
             if (contains)
             {

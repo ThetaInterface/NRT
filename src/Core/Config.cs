@@ -12,7 +12,7 @@ public class Config
     public static readonly string CONFIG_PATH = Path.Combine(App.DataPath, CONFIG_FILE_NAME);
 
     public bool LogDebugInfo { get; init; } = false;
-    public char SeparatorSymbol { get; init; } = ',';
+    public char[] SeparatorSymbols { get; init; } = [','];
     public bool LiteMode { get; init; } = false;
 
     public static async Task<Config> Read()
@@ -23,7 +23,7 @@ public class Config
         Result<Config> result = await IO.TryDeserializeAsync<Config>(CONFIG_PATH);
 
         if (!result.Success)
-            throw new InvalidOperationException("Can not read config file!");
+            return new Config();
         
         return result.Value;
     }

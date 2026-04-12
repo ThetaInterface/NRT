@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-
+using System.Runtime.CompilerServices;
 using NRT.Core;
 
 namespace NRT.Resource;
@@ -39,9 +39,19 @@ public class DeckEntry
 
     public void ConnectToDeck(Deck deck) => parentLink = deck;
 
-    public string GetCorrectAnswer() => string.Join(ConfigProvider.AppConfig.SeparatorSymbol, CorrectAnswers);
+    public string GetCorrectAnswer(bool space)
+    {
+        string spaceStr = space ? " " : string.Empty;
 
-    public string GetAnswerOptions() => string.Join(ConfigProvider.AppConfig.SeparatorSymbol, AnswersOptions);
+        return string.Join(ConfigProvider.AppConfig.SeparatorSymbols.First() + spaceStr, CorrectAnswers);
+    }
+
+    public string GetAnswerOptions(bool space) 
+    {
+        string spaceStr = space ? " " : string.Empty;
+
+        return string.Join(ConfigProvider.AppConfig.SeparatorSymbols.First() + spaceStr, AnswersOptions);
+    }
 
     public void SetCorrectAnswer(string[] answer) => CorrectAnswers = answer;
     
@@ -54,13 +64,12 @@ public class DeckEntry
 
         parentLink.OnReview();
 
-        char separator = ConfigProvider.AppConfig.SeparatorSymbol;
-        string[] answerParts = answer.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        string[] answerParts = answer.Split(ConfigProvider.AppConfig.SeparatorSymbols, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         bool isCorrect = false;
         if (IsAnswersOrderImportant)
         {
-            if (answer.Equals(GetCorrectAnswer()))
+            if (GetCorrectAnswer(false).Equals(string.Join(ConfigProvider.AppConfig.SeparatorSymbols.First(), answerParts)))
                 isCorrect = true;
         }
         else
@@ -171,9 +180,9 @@ public class DeckEntry
             + $"\tQuestion:\t {Question}\n";
 
         if (!parentLink.UseSuperMemo)
-            str += $"\tAnswer options:  {GetAnswerOptions()}\n";
+            str += $"\tAnswer options:  {GetAnswerOptions(true)}\n";
         
-        str += $"\tCorrect answer:  {GetCorrectAnswer()}\n\n" +
+        str += $"\tCorrect answer:  {GetCorrectAnswer(true)}\n\n" +
             $"\tCreated:\t{CreationDate: yyyy.MM.dd}\n" +
             $"\tWill be shown:\t {(ShowDate != null ? ShowDate.GetValueOrDefault().ToString("yyyy.MM.dd") : "Today")}\n";
 
