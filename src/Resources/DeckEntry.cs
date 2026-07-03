@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using NRT.Core;
 
 namespace NRT.Resource;
@@ -57,28 +56,26 @@ public class DeckEntry
     
     public void SetAnswerOptions(string[] options) => AnswersOptions = options;
     
-    public bool Answer(string answer)
+    public bool Answer(string[] answers)
     {
         if (parentLink == null)
             throw new InvalidOperationException("Parent is not provided!");
 
         parentLink.OnReview();
 
-        string[] answerParts = answer.Split(ConfigProvider.AppConfig.SeparatorSymbols, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
         bool isCorrect = false;
         if (IsAnswersOrderImportant)
         {
-            if (GetCorrectAnswer(false).Equals(string.Join(ConfigProvider.AppConfig.SeparatorSymbols.First(), answerParts)))
+            if (CorrectAnswers.SequenceEqual(answers))
                 isCorrect = true;
         }
         else
         {
-            if (answerParts.Length != CorrectAnswers.Length)
+            if (answers.Length != CorrectAnswers.Length)
                 isCorrect = false;
             else
             {
-                foreach (var part in answerParts)
+                foreach (var part in answers)
                 {
                     if (!CorrectAnswers.Contains(part))
                     {

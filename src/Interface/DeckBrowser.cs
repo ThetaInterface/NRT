@@ -282,8 +282,7 @@ public static class DeckBrowser
                         answerParts[i] = "UNRECOGNIZED!";
                 }
 
-                string answer = string.Join(separators.First(), answerParts);
-                bool isCorrect = entry.Answer(answer);
+                bool isCorrect = entry.Answer(answerParts);
 
                 App.Write("\n" + (isCorrect ? "Correct!" : "Mistake!"), nextLine: true, space: false);
                 App.ReadLine();
