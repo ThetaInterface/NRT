@@ -70,16 +70,18 @@ public static class DeckMaster
         App.ClearScreen();
         
         if (fromDeck == null)
-            textToShow = "Do you want create 'Test' deck? (y/n): ";
+            textToShow = "Do you want create 'Test' deck? (y/n/q): ";
         else
-            textToShow = $"Change deck type to {(fromDeck.UseSuperMemo ? "'Test' format" : "'Card' format")} (y/n): ";
+            textToShow = $"Change deck type to {(fromDeck.UseSuperMemo ? "'Test' format" : "'Card' format")} (y/n/q): ";
         
-        string userInput = Input.UserInput(textToShow, ["y", "n"]);
+        string userInput = Input.UserInput(textToShow, ["y", "n", "q"]);
 
         if (userInput.Equals("y"))
             useSuperMemo = fromDeck != null && !fromDeck.UseSuperMemo;
-        else
+        else if (userInput.Equals("n"))
             useSuperMemo = fromDeck == null || fromDeck.UseSuperMemo;
+        else 
+            return;
 
         Result<Deck> modifyResult = await Deck.ModifyDeckAsync(fromDeck ?? new Deck(), newDeck => new Deck()
         {
